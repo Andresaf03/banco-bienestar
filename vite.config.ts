@@ -6,6 +6,8 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "./",
   plugins: [react()],
+  // El worker de MapLibre es un módulo ES con importaciones propias.
+  worker: { format: "es" },
   build: {
     // MapLibre (~1 MB) y Plot van en archivos propios: cambian menos que el código de la app.
     chunkSizeWarningLimit: 1100,

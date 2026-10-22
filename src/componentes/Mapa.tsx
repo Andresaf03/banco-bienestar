@@ -1,5 +1,6 @@
-import { type GeoJSONSource, Map as MapaGL, NavigationControl } from "maplibre-gl";
+import { type GeoJSONSource, Map as MapaGL, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import urlWorker from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { caja, colorApertura, colorPrivadas, type ModoMapa, type PropiedadesMunicipio } from "../lib/mapa";
@@ -15,6 +16,10 @@ interface Props {
 }
 
 const MEXICO: [number, number, number, number] = [-118.5, 14.3, -86.5, 33.0];
+
+// MapLibre 6 carga su worker con una ruta relativa que el empaquetado de Vite rompe: sin worker el
+// estilo nunca termina de cargar y el mapa queda en blanco. Vite empaqueta el worker y da su URL.
+setWorkerUrl(urlWorker);
 
 /** Mapa municipal sin teselas externas: solo los polígonos del Marco Geoestadístico. */
 export function Mapa({ municipios, estados, modo, t, seleccionado, onSeleccionar, etiqueta }: Props) {
