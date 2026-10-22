@@ -29,7 +29,7 @@ Otras órdenes: `npm test` (valida el estimador contra R), `npm run build` (siti
 
 ## De dónde salen los datos
 
-La app no estima nada en el servidor. Desde la raíz del repositorio, con la batería ya corrida:
+La app no estima nada en el servidor. Desde la raíz del proyecto, con la batería ya corrida:
 
 ```bash
 make app-datos
@@ -63,13 +63,24 @@ del trabajo es doblemente robusta, con covariables; la app la muestra junto al c
 
 ## Publicar
 
-El build usa rutas relativas (`base: "./"`), así que el mismo `dist/` sirve en cualquier subcarpeta.
+Enlace público: **https://andresaf03.github.io/banco-bienestar/**
 
-- **Vercel:** importar el repositorio y elegir `app` como *Root Directory*. Vite se detecta solo:
-  `npm run build` y salida `dist`.
-- **GitHub Pages:** `.github/workflows/app.yml` construye y publica la app en cada push a `main`
-  que toque `app/`. Hay que activar Pages con la fuente "GitHub Actions" en la configuración del
-  repositorio.
+La app se publica desde un repositorio propio,
+[Andresaf03/banco-bienestar](https://github.com/Andresaf03/banco-bienestar), que contiene solo esta
+carpeta: es `git subtree split --prefix app` del proyecto, que no tiene remoto. Para actualizarla,
+con los cambios de `app/` ya en un commit, desde la raíz del proyecto:
+
+```bash
+git push git@github.com:Andresaf03/banco-bienestar.git "$(git subtree split --prefix app):refs/heads/main"
+```
+
+En la máquina de desarrollo `git` es `/Library/Developer/CommandLineTools/usr/bin/git`. El push
+activa `.github/workflows/app.yml` del repositorio público, que corre `npm ci`, `npm test` y
+`npm run build` y publica `dist/` en GitHub Pages (fuente "GitHub Actions").
+
+El build usa rutas relativas (`base: "./"`), así que el mismo `dist/` sirve en cualquier subcarpeta.
+En Vercel basta importar el repositorio público (o este con `app` como *Root Directory*): Vite se
+detecta solo, `npm run build` y salida `dist`.
 
 ## Estructura
 
