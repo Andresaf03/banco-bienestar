@@ -9,6 +9,8 @@ export interface Municipio {
   /** trimestre de la primera sucursal (2019T1 = 1; 0 = nunca hasta 2025T4) */
   G: number;
   pob: number | null;
+  /** adultos con el denominador fijo de 2022T4 */
+  ad: number | null;
   /** grado de marginación 2020 (CONAPO) */
   mg: string | null;
   im: number | null;
@@ -126,6 +128,72 @@ export interface Resumen {
   min_cohorte: number;
 }
 
+export interface EstimacionUso {
+  att: number;
+  ee: number;
+  lo: number;
+  hi: number;
+  media: number;
+  wald_p: number;
+  tratadas: number;
+  controles: number;
+}
+
+export interface Uso {
+  estimaciones: Record<
+    "capt_total_bd_pc" | "cred_total_bd_pc" | "tarjetas_debito_bd_pc",
+    EstimacionUso & { evento: PuntoEvento[] }
+  >;
+  transacciones_cajero: EstimacionUso;
+  tarjetas_credito_bm: { pct: number; lo: number; hi: number; wald_p: number };
+  por_tarjeta_evento: { e: number; v: number; n: number }[];
+  banca_desarrollo: {
+    periodo: string;
+    capt: number;
+    cred: number;
+    n2: number;
+    n4: number;
+    tarjetas: number;
+    capt_bm: number | null;
+    cred_bm: number | null;
+  }[];
+  portafolio: {
+    mensual: { mes: string; tarjetas: number; transacciones: number; por_tarjeta: number }[];
+    ultimo_mes: string;
+    cajeros: number;
+    cajeros_solo_retiros: number;
+    tiene_tarjeta_credito: boolean;
+    tiene_tpv: boolean;
+  };
+}
+
+export interface ResultadoTema extends Intervalo {
+  nombre: string;
+  fuente: string;
+  paso: string;
+  log: boolean;
+  unidad: string;
+  att: number;
+  media: number;
+  wald_p: number | null;
+  tratadas: number;
+  controles: number;
+  lectura: string;
+  evento: PuntoEvento[];
+}
+
+export type Tema = "emprendimiento" | "empleo" | "violencia" | "politica" | "hogares";
+
+export type Temas = Record<Tema, ResultadoTema[]> & {
+  denue: ({ banda: string; wald_p: number; tratadas: number } & Intervalo)[];
+};
+
+export interface Covariables {
+  grupos: { grupo: string; unidades: number; privadas: number; poblacion: number; marginacion: number; banca: number }[];
+  cohortes: { g: number; tratadas: number; controles: number; auc: number; fuera: number; bruta: number; ponderada: number; peor: string }[];
+  emparejados: { tratadas: number; controles: number } & Intervalo;
+}
+
 export interface Datos {
   municipios: MunicipiosArchivo;
   panel: PanelArchivo;
@@ -135,4 +203,7 @@ export interface Datos {
   heterogeneidad: Heterogeneidad[];
   extensiones: Extension[];
   resumen: Resumen;
+  uso: Uso;
+  temas: Temas;
+  covariables: Covariables;
 }

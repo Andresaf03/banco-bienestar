@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import { useDatos } from "./lib/datos";
 import { Efecto } from "./secciones/Efecto";
+import { Escenario } from "./secciones/Escenario";
 import { Laboratorio } from "./secciones/Laboratorio";
 import { Metodo } from "./secciones/Metodo";
 import { Portada } from "./secciones/Portada";
 import { Pruebas } from "./secciones/Pruebas";
+import { Temas } from "./secciones/Temas";
+import { Uso } from "./secciones/Uso";
 
 const SECCIONES = [
   { id: "mapa", texto: "Mapa" },
   { id: "respuesta", texto: "Respuesta" },
-  { id: "efecto", texto: "Efecto" },
+  { id: "uso", texto: "Uso" },
+  { id: "efecto", texto: "Banca privada" },
+  { id: "temas", texto: "Más allá" },
   { id: "pruebas", texto: "Pruebas" },
+  { id: "escenario", texto: "Escenario" },
   { id: "laboratorio", texto: "Laboratorio" },
   { id: "metodo", texto: "Método" },
 ];
@@ -38,7 +44,14 @@ function useSeccionActual(listo: boolean): string | null {
 
 export function App() {
   const estado = useDatos();
-  const actual = useSeccionActual(estado.estado === "listo");
+  const listo = estado.estado === "listo";
+  const actual = useSeccionActual(listo);
+
+  // Enlaces directos (#uso, #laboratorio…): las secciones existen hasta que llegan los datos.
+  useEffect(() => {
+    if (!listo || !window.location.hash) return;
+    document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+  }, [listo]);
 
   return (
     <>
@@ -68,8 +81,11 @@ export function App() {
         {estado.estado === "listo" && (
           <>
             <Portada datos={estado.datos} />
+            <Uso datos={estado.datos} />
             <Efecto datos={estado.datos} />
+            <Temas datos={estado.datos} />
             <Pruebas datos={estado.datos} />
+            <Escenario datos={estado.datos} />
             <Laboratorio datos={estado.datos} />
             <Metodo datos={estado.datos} />
           </>

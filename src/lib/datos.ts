@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type {
+  Covariables,
   Datos,
   Efecto,
   Extension,
@@ -11,6 +12,8 @@ import type {
   Resumen,
   Robustez,
   SucursalesArchivo,
+  Temas,
+  Uso,
 } from "./tipos";
 
 const BASE = `${import.meta.env.BASE_URL}datos/`;
@@ -22,8 +25,19 @@ async function json<T>(nombre: string): Promise<T> {
 }
 
 export async function cargarDatos(): Promise<Datos> {
-  const [municipios, panel, sucursales, efectos, robustez, heterogeneidad, extensiones, resumen] =
-    await Promise.all([
+  const [
+    municipios,
+    panel,
+    sucursales,
+    efectos,
+    robustez,
+    heterogeneidad,
+    extensiones,
+    resumen,
+    uso,
+    temas,
+    covariables,
+  ] = await Promise.all([
       json<MunicipiosArchivo>("municipios"),
       json<PanelArchivo>("panel"),
       json<SucursalesArchivo>("sucursales"),
@@ -32,8 +46,23 @@ export async function cargarDatos(): Promise<Datos> {
       json<Heterogeneidad[]>("heterogeneidad"),
       json<Extension[]>("extensiones"),
       json<Resumen>("resumen"),
+      json<Uso>("uso"),
+      json<Temas>("temas"),
+      json<Covariables>("covariables"),
     ]);
-  return { municipios, panel, sucursales, efectos, robustez, heterogeneidad, extensiones, resumen };
+  return {
+    municipios,
+    panel,
+    sucursales,
+    efectos,
+    robustez,
+    heterogeneidad,
+    extensiones,
+    resumen,
+    uso,
+    temas,
+    covariables,
+  };
 }
 
 export function urlDatos(nombre: string): string {

@@ -255,18 +255,19 @@ export function Portada({ datos }: { datos: Datos }) {
           </span>
         </li>
         <li>
-          Las tarjetas se usan para cobrar: unas {num(r.transacciones_por_tarjeta, 1)} transacciones
-          por tarjeta cada trimestre en sus cajeros, al ritmo de los pagos bimestrales de los
-          programas.
-          <span>Descriptivo; no hay datos municipales de uso de las cuentas fuera de sus cajeros.</span>
+          Pero las cuentas no traen crédito: por cada 100 cuentas nuevas, menos de un crédito, y sus
+          tarjetas se usan unas {num(r.transacciones_por_tarjeta, 1)} veces por trimestre en cajeros que
+          solo sirven para retirar.
+          <span>El banco funciona como pagador de programas, no como banco. Detalle en Uso.</span>
         </li>
       </ul>
       <div className="recomendacion">
         <h3>Para decidir</h3>
         <p>
-          Si la meta es pagar programas y abrir cuentas, el banco cumple. Si la meta
-          es que llegue la banca privada a los municipios sin bancos, abrir una sucursal pública no
-          basta: hace falta que ofrezca crédito y ahorro, o una política distinta para atraer oferta.
+          Si la meta es pagar programas y abrir cuentas, el banco cumple. Si la meta es inclusión
+          financiera (crédito, ahorro, pagos) o atraer a la banca privada a los municipios sin bancos,
+          abrir sucursales no basta: el banco tendría que prestar y procesar pagos, o hace falta otra
+          política para atraer oferta.
         </p>
       </div>
       </div>

@@ -8,10 +8,13 @@ para quien tiene que decidir, no para quien quiere leer el código.
 |---|---|
 | Mapa | Ver la expansión 2019–2025 trimestre por trimestre, buscar un municipio y abrir su ficha: cuándo llegó el banco, si entra en la estimación y cómo se movieron sus sucursales privadas |
 | Respuesta | La conclusión en tres frases y qué implica para decidir |
-| Efecto | Estudio de evento de 9 resultados con tres estimadores. El veredicto se reescribe cuando se mueve el umbral de equivalencia. Incluye el efecto por cohorte, HonestDiD y los resultados fuera del sistema financiero |
+| Uso | ¿Se usan las cuentas? Cuentas, tarjetas y crédito del banco al abrir (fase 5, exploratoria), créditos por cada 100 cuentas contra la banca múltiple y uso de las tarjetas |
+| Banca privada | Estudio de evento de 9 resultados con tres estimadores. El veredicto se reescribe cuando se mueve el umbral de equivalencia. Incluye el efecto por cohorte, HonestDiD y los resultados fuera del sistema financiero |
+| Más allá | Emprendimiento, empleo e informalidad, violencia, política y hogares: efecto, lectura y estudio de evento de cada resultado |
 | Pruebas | Otros estimadores, otros controles, fechas al azar, sin un estado a la vez, heterogeneidad, placebo y derrames |
+| Escenario | Qué cabría esperar si el banco abriera donde todavía no está (tarjetas, cuentas, créditos y sucursales privadas), con su intervalo |
 | Laboratorio | Vuelve a estimar Callaway y Sant'Anna en el navegador con la muestra que se elija (estados, banca previa, marginación, población, grupo de control) |
-| Método | Supuestos con veredicto, el camino de los datos, límites, cómo reproducir y las fuentes |
+| Método | Covariables, balance por cohorte y emparejamiento; supuestos con veredicto, el camino de los datos, límites, cómo reproducir y las fuentes |
 
 ## Correr en local
 
@@ -35,10 +38,12 @@ La app no estima nada en el servidor. Desde la raíz del proyecto, con la bater�
 make app-datos
 ```
 
-Esa orden ejecuta tres pasos:
+Esa orden corre primero `make uso` (la fase 5: panel de la banca de desarrollo y su estimación) y
+luego tres pasos:
 
-1. `datos/exportar.py` lee `outputs/tablas/` y el panel municipal y escribe los JSON de
-   `public/datos/`. Las cifras de las secciones salen de ahí, nunca se copian a mano.
+1. `datos/exportar.py` (con `datos/comun.py` y `datos/temas.py`) lee `outputs/tablas/` y los paneles
+   y escribe los JSON de `public/datos/`. Las cifras de las secciones salen de ahí, nunca se copian
+   a mano.
 2. `datos/referencia_cs.R` corre `did` sin covariables con la misma muestra que la batería y guarda
    `datos/referencia_cs.csv`.
 3. `npm run geo` simplifica el Marco Geoestadístico 2024 con mapshaper y lo guarda como

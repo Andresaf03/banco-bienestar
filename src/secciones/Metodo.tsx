@@ -1,6 +1,7 @@
 import { urlDatos } from "../lib/datos";
 import { num, p, pct } from "../lib/formato";
 import type { Datos } from "../lib/tipos";
+import { Covariables } from "./Covariables";
 
 const FUENTES = [
   {
@@ -58,7 +59,9 @@ export function Metodo({ datos }: { datos: Datos }) {
         </p>
       </header>
 
-      <h3 style={{ marginBottom: "0.8rem" }}>Supuestos</h3>
+      <Covariables datos={datos} />
+
+      <h3 style={{ margin: "3rem 0 0.8rem" }}>Supuestos</h3>
       <table>
         <thead>
           <tr>
