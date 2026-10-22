@@ -126,7 +126,11 @@ export function Metodo({ datos }: { datos: Datos }) {
         <div>
           <h3 style={{ marginBottom: "0.8rem" }}>Lo que este trabajo no responde</h3>
           <ul className="pasos">
-            <li>Mide si hay sucursales, no cuánto se usan ni cuánto prestan; la captación y el crédito por sector solo existen desde 2022T4.</li>
+            <li>
+              Mide contratos, no montos: los datos públicos no traen saldos, cuentas activas ni crédito
+              por sucursal, y la captación y el crédito por sector solo existen desde 2022T4. El uso
+              (sección Uso) es exploratorio y solo cubre las aperturas de 2023 en adelante.
+            </li>
             <li>La ubicación no fue al azar: el resultado descansa en las tendencias paralelas.</li>
             <li>
               “No desplazó” es más firme que “no atrajo”: una especificación, el TWFE extendido con
@@ -136,8 +140,10 @@ export function Metodo({ datos }: { datos: Datos }) {
           </ul>
           <h3 style={{ margin: "1.6rem 0 0.8rem" }}>Siguiente paso</h3>
           <p className="prosa">
-            Medir uso, no presencia: cuentas activas, saldos y crédito por sucursal del propio banco,
-            y repetir el análisis cuando las aperturas de 2024 tengan más años de seguimiento.
+            Con datos públicos ya se midió el crédito y las cuentas que trae el banco (sección Uso). Lo
+            que falta solo lo tiene el banco: cuentas activas, saldos y crédito por sucursal, que se
+            pueden pedir por transparencia. Además, repetir el análisis con los trimestres de 2026,
+            cuando las aperturas de 2024 tengan más años de seguimiento.
           </p>
         </div>
       </div>
