@@ -105,33 +105,35 @@ export function Escenario({ datos }: { datos: Datos }) {
             {num(elegidos.length)} municipios con {num(adultos)} adultos; hoy tienen {num(privadasHoy, 0)}{" "}
             sucursales privadas y {num(sinPrivadas)} de ellos ninguna.
           </p>
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Qué cambiaría</th>
-                <th scope="col">Por cada 10 mil adultos</th>
-                <th scope="col">En estos municipios</th>
-                <th scope="col">Intervalo al 90%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lineas.map((l) => (
-                <tr key={l.nombre}>
-                  <td>
-                    {l.nombre}
-                    <div className="nota" style={{ fontWeight: 400 }}>{l.nota}</div>
-                  </td>
-                  <td>{num(l.att, l.att < 10 ? 2 : 0)}</td>
-                  <td>
-                    <b>{num(l.att * escala, l.decimales)}</b>
-                  </td>
-                  <td style={{ whiteSpace: "nowrap" }}>
-                    {num((l.att - Z90 * l.ee) * escala, l.decimales)} a {num((l.att + Z90 * l.ee) * escala, l.decimales)}
-                  </td>
+          <div className="tabla">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Qué cambiaría</th>
+                  <th scope="col">Por cada 10 mil adultos</th>
+                  <th scope="col">En estos municipios</th>
+                  <th scope="col">Intervalo al 90%</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {lineas.map((l) => (
+                  <tr key={l.nombre}>
+                    <td>
+                      {l.nombre}
+                      <div className="nota" style={{ fontWeight: 400 }}>{l.nota}</div>
+                    </td>
+                    <td>{num(l.att, l.att < 10 ? 2 : 0)}</td>
+                    <td>
+                      <b>{num(l.att * escala, l.decimales)}</b>
+                    </td>
+                    <td style={{ whiteSpace: "nowrap" }}>
+                      {num((l.att - Z90 * l.ee) * escala, l.decimales)} a {num((l.att + Z90 * l.ee) * escala, l.decimales)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <p className="nota" style={{ marginTop: "1rem" }}>
             Las sucursales privadas no se moverían de forma apreciable: el intervalo incluye el cero y
             cabe en unas cuantas sucursales. Lo que sí llegaría son cuentas y tarjetas, con muy poco

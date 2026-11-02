@@ -3,8 +3,8 @@ import { useCallback, useState } from "react";
 import { Segmentado } from "../componentes/Controles";
 import { AZUL, GRIS, Grafica, LINEA } from "../componentes/Grafica";
 import { intervalo, num, p, pct } from "../lib/formato";
-import { intervalos } from "../lib/graficas";
-import type { Datos } from "../lib/tipos";
+import { filasDecisiones, intervalos } from "../lib/graficas";
+import type { Datos, Decision } from "../lib/tipos";
 
 type Sector = "privado" | "bm" | "eacp";
 
@@ -40,6 +40,19 @@ const CONTROLES: Record<string, string> = {
   "H2 + distancia a la banca": "Más distancia a la banca",
   "H2 + región": "Más región",
 };
+
+/** Rango del efecto entre decisiones y cuáles dejan el intervalo fuera de la franja de equivalencia. */
+function lecturaDecisiones(decisiones: Decision[], umbral: number): string {
+  const valores = decisiones.map((d) => d.pct);
+  const rango = `El efecto va de ${pct(Math.min(...valores))} a ${pct(Math.max(...valores))}.`;
+  const fuera = decisiones.filter((d) => d.lo < -umbral || d.hi > umbral);
+  if (fuera.length === 0) return `${rango} Ningún intervalo sale de la franja de ±${num(umbral)}%.`;
+  const citas = fuera.map((d) => `«${d.v.charAt(0).toLowerCase()}${d.v.slice(1)}»`);
+  const nombres = citas.length === 1 ? citas[0] : `${citas.slice(0, -1).join(", ")} y ${citas[citas.length - 1]}`;
+  const sujeto = fuera.length === 1 ? `La variante ${nombres} deja su intervalo` : `Las variantes ${nombres} dejan sus intervalos`;
+  const precision = fuera.every((d) => Math.abs(d.pct) < umbral) ? ": el punto sigue dentro, se pierde precisión" : "";
+  return `${rango} ${sujeto} fuera de la franja de ±${num(umbral)}%${precision}.`;
+}
 
 /** Etiqueta y orden de cada grupo de heterogeneidad. */
 const GRUPOS: Record<string, [string, number]> = {
@@ -91,6 +104,12 @@ export function Pruebas({ datos }: { datos: Datos }) {
           })),
         { ancho, umbral, dominio: [-12, 18], margenIzq: 290 },
       ),
+    [robustez, sector, umbral],
+  );
+
+  const opcionesDecisiones = useCallback(
+    (ancho: number) =>
+      intervalos(filasDecisiones(robustez.decisiones[sector]), { ancho, umbral, dominio: [-12, 18], margenIzq: 290 }),
     [robustez, sector, umbral],
   );
 
@@ -169,8 +188,8 @@ export function Pruebas({ datos }: { datos: Datos }) {
         <h2 id="titulo-pruebas">¿Aguanta?</h2>
         <p>
           Un nulo solo convence si no depende de una elección arbitraria. Aquí está el mismo resultado
-          con otros estimadores, otros grupos de control, fechas inventadas y quitando un estado a la
-          vez. La franja es el umbral de ±{num(umbral)}%.
+          con otros estimadores, otros grupos de control, fechas inventadas, quitando un estado a la
+          vez y cambiando cada decisión del análisis. La franja es el umbral de ±{num(umbral)}%.
         </p>
       </header>
 
@@ -214,6 +233,15 @@ export function Pruebas({ datos }: { datos: Datos }) {
           <Grafica opciones={opcionesEstados} descripcion="Efecto quitando un estado a la vez" />
         </figure>
       </div>
+
+      <h3 className="subtitulo">Una decisión a la vez</h3>
+      <p className="nota" style={{ marginBottom: "1rem" }}>
+        Todo análisis toma decisiones que pudieron tomarse de otra forma (Simmons, Nelson y Simonsohn,
+        2011): con qué se ajusta, contra quién se compara, qué fechas se aceptan y qué municipios se
+        excluyen. Aquí cada una, cambiada sola. {lecturaDecisiones(robustez.decisiones[sector], umbral)} Huecos:
+        reprueban la pre-prueba.
+      </p>
+      <Grafica opciones={opcionesDecisiones} descripcion="Efecto cambiando una decisión del análisis a la vez" />
 
       <h3 className="subtitulo">¿Para quién?</h3>
       <p className="nota" style={{ marginBottom: "1rem" }}>

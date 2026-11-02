@@ -2,7 +2,8 @@
 
 import * as Plot from "@observablehq/plot";
 import { AZUL, AZUL_BANDA, GRIS, LINEA, TINTA } from "../componentes/Grafica";
-import { num, pct } from "./formato";
+import { num, p, pct } from "./formato";
+import type { Decision } from "./tipos";
 
 export interface PuntoE {
   e: number;
@@ -61,9 +62,14 @@ export function intervalos(
 ): Plot.PlotOptions {
   const orden = filas.map((f) => f.etiqueta);
   const izquierda = Math.min(margenIzq, ancho * 0.45);
+  // Plot parte las etiquetas a `anchoEm` ems; con ~0.56 em por carácter se estima cuántas líneas
+  // ocupan, para que en pantallas chicas las filas de tres o más líneas no se encimen.
+  const anchoEm = (izquierda - 14) / 13;
+  const lineas = Math.max(1, ...filas.map((f) => Math.ceil((f.etiqueta.length * 0.56) / anchoEm)));
+  const alto = lineas <= 2 ? 34 : 15 * lineas + 4;
   return {
     width: ancho,
-    height: 40 + 34 * filas.length,
+    height: 40 + alto * filas.length,
     marginLeft: izquierda,
     marginRight: 16,
     x: { label: "Efecto, % de la media previa (IC al 90%)", labelAnchor: "center", labelOffset: 32, domain: dominio, clamp: true, grid: true },
@@ -90,8 +96,21 @@ export function intervalos(
         }),
       ),
       // lineWidth va en ems (13 px): las etiquetas largas se parten en dos líneas en vez de cortarse.
-      Plot.axisY({ tickSize: 0, lineWidth: (izquierda - 14) / 13, fill: TINTA, fontSize: 13, lineHeight: 1.05 }),
+      Plot.axisY({ tickSize: 0, lineWidth: anchoEm, fill: TINTA, fontSize: 13, lineHeight: 1.05 }),
       Plot.frame({ stroke: LINEA, anchor: "bottom" }),
     ],
   };
+}
+
+/** Decisiones discrecionales: la principal resaltada y huecas las variantes que reprueban la pre-prueba. */
+export function filasDecisiones(decisiones: Decision[]): FilaIntervalo[] {
+  return decisiones.map((d, i) => ({
+    etiqueta: d.v,
+    pct: d.pct,
+    lo: d.lo,
+    hi: d.hi,
+    principal: i === 0,
+    hueco: i > 0 && d.wald_p < 0.05,
+    nota: `Pre-prueba p = ${p(d.wald_p)}; ${num(d.tratadas)} tratados y ${num(d.controles)} controles`,
+  }));
 }

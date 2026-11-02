@@ -96,7 +96,7 @@ export function App() {
         <p>
           Andrés Álvarez Flores. Ciencia de Datos Aplicada II, ITAM, otoño de 2026. Parte del proyecto
           de Tópicos de Política Pública II con Fernando Barba y Luis Islas. Datos públicos de la CNBV,
-          el INEGI y la CONAPO.
+          el INEGI, la CONAPO, el IMSS, el SESNSP, el INE y el satélite VIIRS.
         </p>
       </footer>
     </>

@@ -115,7 +115,7 @@ code {
   padding: 0.85rem var(--margen);
   display: flex;
   align-items: baseline;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .nav__marca {
@@ -129,7 +129,7 @@ code {
 
 .nav__enlaces {
   display: flex;
-  gap: 1.4rem;
+  gap: 1.2rem;
   margin-left: auto;
   overflow-x: auto;
   scrollbar-width: none;
@@ -153,7 +153,8 @@ code {
   border-bottom-color: var(--azul);
 }
 
-@media (max-width: 760px) {
+/* Sin la marca, los nueve enlaces caben enteros hasta las pantallas medianas. */
+@media (max-width: 1100px) {
   .nav__marca {
     display: none;
   }
@@ -299,14 +300,19 @@ input[type="search"]:hover {
   border-color: #c5cad3;
 }
 
+/* En pantallas chicas las opciones que no caben se alcanzan deslizando, no quedan cortadas. */
 .segmentado {
   display: inline-flex;
+  max-width: 100%;
   border: 1px solid var(--linea);
   border-radius: 5px;
-  overflow: hidden;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .segmentado button {
+  flex: none;
+  white-space: nowrap;
   font: inherit;
   font-size: 0.95rem;
   background: var(--papel);
@@ -627,6 +633,40 @@ th {
 td:first-child {
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* Contenedor de tabla: se desplaza a lo ancho en pantallas chicas en vez de ensanchar la página. */
+.tabla {
+  overflow-x: auto;
+}
+
+/* Tabla de cifras: etiquetas sin negrita y números alineados a la derecha. */
+.tabla--cifras td:first-child {
+  font-weight: 400;
+  white-space: normal;
+  min-width: 14rem;
+}
+
+.tabla .num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla th:last-child,
+.tabla td:last-child {
+  padding-right: 0;
+}
+
+.tabla .de {
+  color: var(--gris);
+}
+
+@media (max-width: 760px) {
+  td:first-child {
+    white-space: normal;
+    min-width: 8rem;
+  }
 }
 
 .pasos {

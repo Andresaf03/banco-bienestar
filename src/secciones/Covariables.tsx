@@ -13,12 +13,6 @@ const COVARIABLES = [
   ["Banca múltiple en 2019", "Donde ya había bancos la banca privada sigue otra trayectoria."],
 ];
 
-const NOMBRE_GRUPO: Record<string, string> = {
-  "ya tratado al inicio": "Ya tenían sucursal en 2019",
-  "cohorte tratada": "Abren en 2019–2024",
-  "nunca tratado": "Sin sucursal a 2024",
-};
-
 const NOMBRE_COVARIABLE: Record<string, string> = {
   log_poblacion_2020: "población",
   indice_marginacion_2020: "marginación",
@@ -26,7 +20,8 @@ const NOMBRE_COVARIABLE: Record<string, string> = {
 };
 
 export function Covariables({ datos }: { datos: Datos }) {
-  const { grupos, cohortes, emparejados } = datos.covariables;
+  const { descriptivas, grupos, cohortes, emparejados } = datos.covariables;
+  const yaTratados = grupos.find((g) => g.grupo === "ya tratado al inicio")?.unidades;
   const efecto = (clave: string) => datos.efectos.find((e) => e.clave === clave)!.cabecera;
 
   const opcionesBalance = useCallback(
@@ -87,26 +82,6 @@ export function Covariables({ datos }: { datos: Datos }) {
             El estimador doblemente robusto combina un puntaje de propensión con estas tres variables y
             una regresión del cambio en el resultado. Basta con que uno de los dos modelos sea correcto.
           </p>
-          <table style={{ marginTop: "1.2rem" }}>
-            <thead>
-              <tr>
-                <th scope="col">Grupo</th>
-                <th scope="col">Municipios</th>
-                <th scope="col">Población media</th>
-                <th scope="col">Con banca en 2019</th>
-              </tr>
-            </thead>
-            <tbody>
-              {grupos.map((g) => (
-                <tr key={g.grupo}>
-                  <td>{NOMBRE_GRUPO[g.grupo] ?? g.grupo}</td>
-                  <td>{num(g.unidades)}</td>
-                  <td>{num(g.poblacion)}</td>
-                  <td>{num(100 * g.banca)}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
         <figure>
           <Grafica opciones={opcionesBalance} descripcion="Balance de covariables por cohorte antes y después de reponderar" />
@@ -117,6 +92,52 @@ export function Covariables({ datos }: { datos: Datos }) {
           </figcaption>
         </figure>
       </div>
+
+      <h3 style={{ margin: "2.5rem 0 0.8rem" }}>Quiénes abren y quiénes no, antes de abrir</h3>
+      <div className="tabla tabla--cifras">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">En 2019T1</th>
+              <th scope="col" className="num">
+                Abren en 2019–2024
+              </th>
+              <th scope="col" className="num">
+                Sin sucursal a 2024
+              </th>
+              <th scope="col" className="num">
+                Diferencia estandarizada
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {descriptivas.filas.map((f) => (
+              <tr key={f.nombre}>
+                <td>{f.nombre}</td>
+                <td className="num">
+                  {num(f.t, f.d)} <span className="de">({num(f.t_de, f.d)})</span>
+                </td>
+                <td className="num">
+                  {num(f.c, f.d)} <span className="de">({num(f.c_de, f.d)})</span>
+                </td>
+                <td className="num">{num(f.dif, 2)}</td>
+              </tr>
+            ))}
+            <tr>
+              <td>Municipios</td>
+              <td className="num">{num(descriptivas.tratadas)}</td>
+              <td className="num">{num(descriptivas.controles)}</td>
+              <td />
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="nota" style={{ marginTop: "0.5rem" }}>
+        Media (desviación estándar) de la muestra de la estimación. Los que abren son más grandes y ya
+        tenían más banca: por eso se ajusta.
+        {yaTratados !== undefined && ` Fuera quedan los ${num(yaTratados)} municipios que ya tenían sucursal en 2019.`}
+      </p>
+
       <div className="prosa" style={{ marginTop: "1.5rem" }}>
         <p>
           <b>Tendencias previas.</b> Antes de abrir, la pre-prueba conjunta da p = {p(efecto("privado").wald_p)} en

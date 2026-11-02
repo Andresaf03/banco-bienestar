@@ -10,11 +10,11 @@ para quien tiene que decidir, no para quien quiere leer el código.
 | Respuesta | La conclusión en tres frases y qué implica para decidir |
 | Uso | ¿Se usan las cuentas? Cuentas, tarjetas y crédito del banco al abrir (fase 5, exploratoria), créditos por cada 100 cuentas contra la banca múltiple y uso de las tarjetas |
 | Banca privada | Estudio de evento de 9 resultados con tres estimadores. El veredicto se reescribe cuando se mueve el umbral de equivalencia. Incluye el efecto por cohorte, HonestDiD y los resultados fuera del sistema financiero |
-| Más allá | Emprendimiento, empleo e informalidad, violencia, política y hogares: efecto, lectura y estudio de evento de cada resultado |
-| Pruebas | Otros estimadores, otros controles, fechas al azar, sin un estado a la vez, heterogeneidad, placebo y derrames |
+| Más allá | Emprendimiento, empleo e informalidad, violencia, política y hogares: efecto, lectura y estudio de evento de cada resultado. El aumento del DENUE por distancia a la sucursal y con cada decisión cambiada |
+| Pruebas | Otros estimadores, otros controles, fechas al azar, sin un estado a la vez, una decisión a la vez (Simmons et al. 2011), heterogeneidad, placebo y derrames |
 | Escenario | Qué cabría esperar si el banco abriera donde todavía no está (tarjetas, cuentas, créditos y sucursales privadas), con su intervalo |
 | Laboratorio | Vuelve a estimar Callaway y Sant'Anna en el navegador con la muestra que se elija (estados, banca previa, marginación, población, grupo de control) |
-| Método | Covariables, balance por cohorte y emparejamiento; supuestos con veredicto, el camino de los datos, límites, cómo reproducir y las fuentes |
+| Método | Covariables, balance por cohorte, estadísticas descriptivas (Tabla 1 del trabajo final) y emparejamiento; supuestos con veredicto, el camino de los datos, límites, cómo reproducir y las fuentes |
 
 ## Correr en local
 

@@ -1,5 +1,5 @@
 import { urlDatos } from "../lib/datos";
-import { num, p, pct } from "../lib/formato";
+import { intervalo, num, p, pct } from "../lib/formato";
 import type { Datos } from "../lib/tipos";
 import { Covariables } from "./Covariables";
 
@@ -31,13 +31,75 @@ const FUENTES = [
   },
 ];
 
-const ARCHIVOS = ["municipios", "panel", "sucursales", "efectos", "robustez", "heterogeneidad", "extensiones"];
+// Fuentes de "Más allá de la banca"; las URL son las de config/fuentes.yaml y config/denue_catalogo.json.
+const FUENTES_TEMAS = [
+  {
+    nombre: "Directorio Estadístico Nacional de Unidades Económicas (INEGI)",
+    uso: "Establecimientos por localidad, 2016–2025.",
+    url: "https://www.inegi.org.mx/app/descarga/?ti=6",
+  },
+  {
+    nombre: "Censos Económicos (INEGI)",
+    uso: "Unidades económicas y personal ocupado por municipio, 2004–2024.",
+    url: "https://www.inegi.org.mx/programas/ce/2024/#datos_abiertos",
+  },
+  {
+    nombre: "Encuesta Intercensal 2015 y 2025 y Censo 2020 (INEGI)",
+    uso: "Ocupación, negocios propios, remesas y programas sociales por municipio.",
+    url: "https://www.inegi.org.mx/programas/eic/2025/",
+  },
+  {
+    nombre: "Encuesta Nacional de Ocupación y Empleo (INEGI)",
+    uso: "Ocupación e informalidad por trimestre, 2019–2025.",
+    url: "https://www.inegi.org.mx/programas/enoe/15ymas/",
+  },
+  {
+    nombre: "Datos abiertos del IMSS",
+    uso: "Puestos de trabajo y salario formales por municipio.",
+    url: "http://datos.imss.gob.mx/group/asegurados",
+  },
+  {
+    nombre: "Luz nocturna VIIRS, promedios anuales",
+    uso: "Luz alrededor de cada localidad, 2016–2024.",
+    url: "https://zenodo.org/records/17294744",
+  },
+  {
+    nombre: "Finanzas públicas estatales y municipales (INEGI)",
+    uso: "Impuestos municipales.",
+    url: "https://www.inegi.org.mx/programas/finanzas/",
+  },
+  {
+    nombre: "Incidencia delictiva municipal (SESNSP)",
+    uso: "Delitos denunciados por municipio, 2015–2025.",
+    url: "https://www.gob.mx/sesnsp/acciones-y-programas/datos-abiertos-de-incidencia-delictiva",
+  },
+  {
+    nombre: "Estadística de las elecciones federales (INE)",
+    uso: "Participación y votos para diputaciones federales, 2015–2024.",
+    url: "https://sicee.ine.mx/downloadzip",
+  },
+];
+
+const ARCHIVOS = [
+  "municipios",
+  "panel",
+  "sucursales",
+  "efectos",
+  "robustez",
+  "heterogeneidad",
+  "extensiones",
+  "resumen",
+  "uso",
+  "temas",
+  "covariables",
+];
 
 export function Metodo({ datos }: { datos: Datos }) {
   const efecto = (clave: string) => datos.efectos.find((e) => e.clave === clave)!;
   const privado = efecto("privado");
   const bm = efecto("bm");
-  const { placebo, vecinos, controles, estimadores } = datos.robustez;
+  const { placebo, vecinos, controles, estimadores, decisiones } = datos.robustez;
+  const anticipacion = decisiones.privado.find((d) => d.v.startsWith("Anticipación"));
   const sinVecino = controles.find((c) => c.r === "privado" && c.v.startsWith("H1e"));
   const etwfe = estimadores.find((e) => e.r === "privado" && e.est === "TWFE extendido (Wooldridge)");
   const honest = privado.honest?.find((h) => h.m === 0.25);
@@ -55,56 +117,63 @@ export function Metodo({ datos }: { datos: Datos }) {
           operación. Como el banco abrió en momentos distintos, se usa el estimador de Callaway y
           Sant'Anna (2021): compara cada cohorte solo con municipios que todavía no abren y evita el
           sesgo de la regresión clásica con efectos fijos cuando los efectos varían entre cohortes.
-          Todo quedó preregistrado antes de estimar.
+          El análisis principal quedó preregistrado antes de estimar; el uso de las cuentas es
+          exploratorio.
         </p>
       </header>
 
       <Covariables datos={datos} />
 
       <h3 style={{ margin: "3rem 0 0.8rem" }}>Supuestos</h3>
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Supuesto</th>
-            <th scope="col">Qué se revisó</th>
-            <th scope="col">Veredicto</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Tendencias paralelas</td>
-            <td>
-              Antes de abrir, tratados y controles se mueven igual: pre-prueba p = {p(privado.cabecera.wald_p)} en
-              sucursales privadas y {p(bm.cabecera.wald_p)} en banca múltiple, al límite. Placebo de
-              fecha: {pct(placebo.pct)}.
-              {cotaHonest !== null &&
-                ` Si la tendencia fallara hasta un cuarto de la mayor desviación previa, el intervalo seguiría dentro de ±${num(cotaHonest, 1)}%.`}
-            </td>
-            <td>Apoyado, no demostrado</td>
-          </tr>
-          <tr>
-            <td>Sin anticipación</td>
-            <td>Con un trimestre de anticipación el resultado no cambia.</td>
-            <td>Se cumple</td>
-          </tr>
-          <tr>
-            <td>Sin derrames</td>
-            <td>
-              Los vecinos de un municipio que abre cambian {pct(vecinos.pct)}.
-              {sinVecino && ` La prueba con controles sin vecinos que abren solo tiene ${num(sinVecino.controles)} controles.`}
-            </td>
-            <td>Probable; la prueba es débil</td>
-          </tr>
-          <tr>
-            <td>Soporte común</td>
-            <td>
-              Tras reponderar, las cohortes de 2023T4 y 2024T1 siguen desbalanceadas; sin ellas, el
-              resultado es el mismo.
-            </td>
-            <td>Se cumple con matices</td>
-          </tr>
-        </tbody>
-      </table>
+      <div className="tabla">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Supuesto</th>
+              <th scope="col">Qué se revisó</th>
+              <th scope="col">Veredicto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tendencias paralelas</td>
+              <td>
+                Antes de abrir, tratados y controles se mueven igual: pre-prueba p = {p(privado.cabecera.wald_p)} en
+                sucursales privadas y {p(bm.cabecera.wald_p)} en banca múltiple, al límite. Placebo de
+                fecha: {pct(placebo.pct)}.
+                {cotaHonest !== null &&
+                  ` Si la tendencia fallara hasta un cuarto de la mayor desviación previa, el intervalo seguiría dentro de ±${num(cotaHonest, 1)}%.`}
+              </td>
+              <td>Apoyado, no demostrado</td>
+            </tr>
+            <tr>
+              <td>Sin anticipación</td>
+              <td>
+                {anticipacion
+                  ? `Si el efecto empezara un trimestre antes de abrir, sucursales privadas darían ${pct(anticipacion.pct)} ${intervalo(anticipacion.lo, anticipacion.hi)}, igual que la especificación principal.`
+                  : "Con un trimestre de anticipación el resultado no cambia."}
+              </td>
+              <td>Se cumple</td>
+            </tr>
+            <tr>
+              <td>Sin derrames</td>
+              <td>
+                Los vecinos de un municipio que abre cambian {pct(vecinos.pct)}.
+                {sinVecino && ` La prueba con controles sin vecinos que abren solo tiene ${num(sinVecino.controles)} controles.`}
+              </td>
+              <td>Probable; la prueba es débil</td>
+            </tr>
+            <tr>
+              <td>Soporte común</td>
+              <td>
+                Tras reponderar, las cohortes de 2023T4 y 2024T1 siguen desbalanceadas; sin ellas, el
+                resultado es el mismo.
+              </td>
+              <td>Se cumple con matices</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div className="rejilla" style={{ marginTop: "3rem" }}>
         <div>
@@ -162,7 +231,7 @@ cd app && npm install && npm run dev`}</code>
         <div>
           <h3 style={{ marginBottom: "0.8rem" }}>Fuentes</h3>
           <ul className="pasos">
-            {FUENTES.map((f) => (
+            {[...FUENTES, ...FUENTES_TEMAS].map((f) => (
               <li key={f.nombre}>
                 <a href={f.url} target="_blank" rel="noreferrer">
                   {f.nombre}

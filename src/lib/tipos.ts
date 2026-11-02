@@ -97,6 +97,15 @@ export interface Robustez {
   vecinos: Intervalo & { tratadas: number; controles: number };
   controles: ({ r: string; v: string; tratadas: number; controles: number } & Intervalo)[];
   honest_sd: { m: number; lo: number; hi: number }[];
+  /** Cada decisión discrecional tomada de la otra forma (Simmons et al. 2011); la primera fila es la principal. */
+  decisiones: Record<"privado" | "bm" | "eacp" | "denue", Decision[]>;
+}
+
+export interface Decision extends Intervalo {
+  v: string;
+  wald_p: number;
+  tratadas: number;
+  controles: number;
 }
 
 export interface Heterogeneidad extends Intervalo {
@@ -189,6 +198,12 @@ export type Temas = Record<Tema, ResultadoTema[]> & {
 };
 
 export interface Covariables {
+  /** Tabla 1 del trabajo final: tratados y controles de la muestra financiera en 2019T1. */
+  descriptivas: {
+    filas: { nombre: string; d: number; t: number; t_de: number; c: number; c_de: number; dif: number }[];
+    tratadas: number;
+    controles: number;
+  };
   grupos: { grupo: string; unidades: number; privadas: number; poblacion: number; marginacion: number; banca: number }[];
   cohortes: { g: number; tratadas: number; controles: number; auc: number; fuera: number; bruta: number; ponderada: number; peor: string }[];
   emparejados: { tratadas: number; controles: number } & Intervalo;

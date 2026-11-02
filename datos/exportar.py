@@ -23,11 +23,13 @@ Salidas:
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 import pandas as pd
 from comun import _fila, _guardar, _leer, _leer_opcional, _limpio, _registros, _veredicto
 from temas import covariables, temas, uso
 
+from proyecto.utils.entregables import DECISIONES, Z90
 from proyecto.utils.io import INTERIM, PROCESSED, parametros
 
 log = logging.getLogger(__name__)
@@ -170,6 +172,20 @@ EFECTOS = [
 NOTAS = {
     "DENUE": "Sube el padrón en la actualización censal de 2024, pero sin dosis, igual en las "
     "vecinas a 0–2 km y sin reflejo en los Censos Económicos: medición, no efecto de la sucursal.",
+    "Satélite VIIRS": "Contra localidades lejanas la pre-prueba falla porque la luz cambia distinto "
+    "según el brillo; entre localidades con sucursal, por fecha de apertura, los previos son planos "
+    "y el efecto es nulo.",
+}
+
+# Decisiones discrecionales (Simmons et al. 2011): archivo rob_* de cada resultado de la app. Las
+# variantes y etiquetas son las del apéndice del trabajo final (`utils/entregables.py`); banca
+# múltiple y EACP usan las mismas que las sucursales privadas.
+VARIANTES_DECISIONES = {Path(archivo).stem: variantes for archivo, _, variantes in DECISIONES}
+ROB_DECISIONES = {
+    "privado": "rob_municipio_trim_esc_sucursales_privado_pc",
+    "bm": "rob_municipio_trim_esc_sucursales_bm_pc",
+    "eacp": "rob_municipio_trim_esc_sucursales_eacp_pc",
+    "denue": "rob_localidad_act_estab_emprendimiento_pc",
 }
 
 # Resultados de sucursales por sector → clave corta de la app.
@@ -553,7 +569,34 @@ def robustez() -> dict:
             3,
         ),
         "honest_sd": _registros(honest_sd, {"M": "m", "lb_pct": "lo", "ub_pct": "hi"}, 3),
+        "decisiones": _decisiones(),
     }
+
+
+def _decisiones() -> dict[str, list[dict]]:
+    """Cada decisión discrecional tomada de la otra forma, en % de la media previa de su variante
+    e IC al 90%, como la tabla del apéndice. La primera fila es la especificación principal."""
+    privado = VARIANTES_DECISIONES[ROB_DECISIONES["privado"]]
+    salida = {}
+    for clave, archivo in ROB_DECISIONES.items():
+        rob = _leer(archivo)
+        filas = []
+        for variante, etiqueta in VARIANTES_DECISIONES.get(archivo, privado):
+            r = _fila(rob, variante=variante)
+            escala = 100 / r["media_base"]
+            filas.append(
+                {
+                    "v": etiqueta,
+                    "pct": _limpio(escala * r["att"], 3),
+                    "lo": _limpio(escala * (r["att"] - Z90 * r["ee"]), 3),
+                    "hi": _limpio(escala * (r["att"] + Z90 * r["ee"]), 3),
+                    "wald_p": _limpio(r["pre_wald_p"], 4),
+                    "tratadas": int(r["tratadas"]),
+                    "controles": int(r["controles"]),
+                }
+            )
+        salida[clave] = filas
+    return salida
 
 
 def heterogeneidad() -> list[dict]:

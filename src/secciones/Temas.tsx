@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Segmentado, Selector } from "../componentes/Controles";
 import { AZUL, AZUL_BANDA, GRIS, Grafica, TINTA } from "../componentes/Grafica";
 import { intervalo, num, p, pct } from "../lib/formato";
-import { evento, intervalos } from "../lib/graficas";
+import { evento, filasDecisiones, intervalos } from "../lib/graficas";
 import type { Datos, ResultadoTema, Tema } from "../lib/tipos";
 
 const NOMBRES: Record<Tema, string> = {
@@ -23,6 +23,12 @@ const PASO: Record<string, string> = {
 };
 
 const buscar = (filas: ResultadoTema[], nombre: string) => filas.find((f) => f.nombre === nombre);
+
+/** Muestra de un resultado; sin controles, las tratadas se comparan entre sí por fecha de apertura. */
+const muestra = (f: ResultadoTema) =>
+  f.controles > 0
+    ? `${num(f.tratadas)} tratados y ${num(f.controles)} controles`
+    : `${num(f.tratadas)} con sucursal, comparadas por su fecha de apertura`;
 
 /** Lectura de cada tema, con las cifras de los datos. */
 function lectura(tema: Tema, datos: Datos): string {
@@ -50,7 +56,8 @@ function lectura(tema: Tema, datos: Datos): string {
       return "Antes de abrir, los municipios ya votaban distinto que los controles: la pre-prueba falla y no hay efecto que se pueda atribuir al banco. Solo es descriptivo.";
     case "hogares": {
       const prog = buscar(t.hogares, "Hogares que reciben programas");
-      return `La proporción de hogares con programas sube ${pct(prog?.pct ?? NaN)}, pero ya venía subiendo antes de abrir (reprueba la pre-prueba). La luz nocturna casi no se mueve, pero su pre-prueba falla (cambia distinto según el brillo), y los impuestos municipales no permiten decidir.`;
+      const luz = buscar(t.hogares, "Luz nocturna, por fecha de apertura");
+      return `La proporción de hogares con programas sube ${pct(prog?.pct ?? NaN)}, pero ya venía subiendo antes de abrir (reprueba la pre-prueba). La luz nocturna no cambia: contra localidades lejanas la pre-prueba falla, porque la luz cambia distinto según el brillo, pero entre localidades con sucursal, comparadas por su fecha de apertura, los previos son planos y el efecto es ${pct(luz?.pct ?? NaN)} ${intervalo(luz?.lo ?? NaN, luz?.hi ?? NaN)}. Los impuestos municipales no permiten decidir.`;
     }
   }
 }
@@ -76,7 +83,7 @@ export function Temas({ datos }: { datos: Datos }) {
           hi: f.hi,
           hueco: f.lectura === "reprueba la pre-prueba",
           principal: f.nombre === actual.nombre,
-          nota: `${f.lectura}; ${num(f.tratadas)} tratados y ${num(f.controles)} controles`,
+          nota: `${f.lectura}; ${muestra(f)}`,
         })),
         { ancho, umbral: datos.resumen.sesoi, dominio: [-60, 60], margenIzq: 300 },
       ),
@@ -132,6 +139,20 @@ export function Temas({ datos }: { datos: Datos }) {
     },
     [datos],
   );
+
+  const opcionesDecisiones = useCallback(
+    (ancho: number) =>
+      intervalos(filasDecisiones(datos.robustez.decisiones.denue), {
+        ancho,
+        umbral: datos.resumen.sesoi,
+        dominio: [-5, 20],
+        margenIzq: 290,
+      }),
+    [datos],
+  );
+
+  const decisionesDenue = datos.robustez.decisiones.denue;
+  const minimoDenue = decisionesDenue.reduce((a, b) => (b.pct < a.pct ? b : a));
 
   return (
     <section className="seccion" id="temas" aria-labelledby="titulo-temas">
@@ -190,15 +211,26 @@ export function Temas({ datos }: { datos: Datos }) {
       </div>
 
       {tema === "emprendimiento" && (
-        <figure style={{ marginTop: "2.5rem" }}>
-          <h3>El padrón sube también en las vecinas</h3>
-          <p className="nota" style={{ marginBottom: "0.6rem" }}>
-            Efecto en establecimientos del DENUE en la actualización censal de 2024, según la distancia
-            a la sucursal. Un efecto del banco debería concentrarse donde está la sucursal. Huecos:
-            reprueban la pre-prueba.
-          </p>
-          <Grafica opciones={opcionesDenue} descripcion="Efecto en el DENUE por distancia a la sucursal" />
-        </figure>
+        <>
+          <figure style={{ marginTop: "2.5rem" }}>
+            <h3>El padrón sube también en las vecinas</h3>
+            <p className="nota" style={{ marginBottom: "0.6rem" }}>
+              Efecto en establecimientos del DENUE en la actualización censal de 2024, según la
+              distancia a la sucursal. Un efecto del banco debería concentrarse donde está la sucursal.
+              Huecos: reprueban la pre-prueba.
+            </p>
+            <Grafica opciones={opcionesDenue} descripcion="Efecto en el DENUE por distancia a la sucursal" />
+          </figure>
+          <figure style={{ marginTop: "2.5rem" }}>
+            <h3>El aumento con otras decisiones</h3>
+            <p className="nota" style={{ marginBottom: "0.6rem" }}>
+              Cambiadas una a la vez, casi todas las decisiones dejan el aumento cerca de{" "}
+              {pct(decisionesDenue[0].pct)}. Baja a {pct(minimoDenue.pct)} cuando la comparación incluye
+              localidades cercanas a una sucursal, que también suben. Huecos: reprueban la pre-prueba.
+            </p>
+            <Grafica opciones={opcionesDecisiones} descripcion="Efecto en el DENUE cambiando una decisión a la vez" />
+          </figure>
+        </>
       )}
     </section>
   );

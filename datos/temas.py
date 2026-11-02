@@ -12,11 +12,14 @@ Lo llama `exportar.py`; cada función devuelve el contenido de un JSON de `app/p
 
 from __future__ import annotations
 
+import math
+
 import pandas as pd
 from comun import _fila, _leer, _leer_opcional, _limpio, _registros, _veredicto
 
 from proyecto.construccion.panel import mapa_crosswalk
-from proyecto.utils.io import INTERIM, PROCESSED
+from proyecto.utils.entregables import DESCRIPTIVAS, Z90
+from proyecto.utils.io import INTERIM, PROCESSED, parametros
 
 BANCO = "037166"  # Banco del Bienestar en el Portafolio de la CNBV
 TIPOS_PORTAFOLIO = {"34": "transacciones", "38": "tarjetas", "33": "cajeros", "44": "solo_retiros"}
@@ -373,7 +376,7 @@ TEMAS = {
             "localidad_viirs",
             "viirs",
             "log1p_luz_1km",
-            "Luz nocturna a 1 km",
+            "Luz nocturna, contra lejanas",
             "Satélite VIIRS",
             "años",
         ),
@@ -447,8 +450,37 @@ def temas() -> dict:
                     "evento": _evento(r["etiqueta"], ventana),
                 }
             )
+            if resultado == "log1p_luz_1km":
+                salida[tema].append(_viirs_calendario())
     salida["denue"] = _denue()
     return salida
+
+
+def _viirs_calendario() -> dict:
+    """Luz nocturna entre localidades con sucursal según su fecha de apertura: la comparación que
+    pasa la pre-prueba (docs/decisiones.md, fase 2) y la que lee el trabajo final. No tiene estudio
+    de evento ni controles propios: las tratadas tardías sirven de comparación a las tempranas."""
+    v = _fila(_leer("fase2_rob_extra_viirs_log1p_luz_1km"), variante="controles: solo con sucursal")
+    lo, hi = (100 * (v["att"] + z * v["ee"]) for z in (-Z90, Z90))
+    nulo = max(abs(lo), abs(hi)) < float(parametros()["estimacion"]["sesoi_pct"])
+    p = math.erfc(abs(v["att"] / v["ee"]) / math.sqrt(2))
+    return {
+        "nombre": "Luz nocturna, por fecha de apertura",
+        "fuente": "Satélite VIIRS",
+        "paso": "años",
+        "log": True,
+        "unidad": _unidad("log1p_luz_1km"),
+        "pct": _limpio(100 * v["att"], 3),
+        "lo": _limpio(lo, 3),
+        "hi": _limpio(hi, 3),
+        "att": _limpio(v["att"], 4),
+        "media": _limpio(v["media_base"], 4),
+        "wald_p": _limpio(v["pre_wald_p"], 4),
+        "tratadas": int(v["tratadas"]),
+        "controles": int(v["controles"]),
+        "lectura": _veredicto(bool(v["pre_wald_p"] < 0.05), nulo, p),
+        "evento": [],
+    }
 
 
 def _denue() -> list[dict]:
@@ -482,6 +514,7 @@ def covariables() -> dict:
         variante="H1d nunca tratados emparejados (PS 1:1, región)",
     )
     return {
+        "descriptivas": _descriptivas(),
         "grupos": _registros(
             grupos,
             {
@@ -520,3 +553,28 @@ def covariables() -> dict:
             ),
         },
     }
+
+
+def _descriptivas() -> dict:
+    """Estadísticas descriptivas en 2019T1 de la muestra financiera (Tabla 1 del trabajo final):
+    media y desviación estándar de tratados y controles, y su diferencia estandarizada."""
+    desc = _leer("desc_estadisticas_municipio_trim")
+    filas = []
+    for variable, nombre, escala, decimales in DESCRIPTIVAS:
+        t = _fila(desc, variable=variable, grupo="tratados")
+        c = _fila(desc, variable=variable, grupo="controles")
+        filas.append(
+            {
+                "nombre": nombre,
+                "d": decimales,
+                "t": _limpio(escala * t["media"], 4),
+                "t_de": _limpio(escala * t["de"], 4),
+                "c": _limpio(escala * c["media"], 4),
+                "c_de": _limpio(escala * c["de"], 4),
+                "dif": _limpio(
+                    (t["media"] - c["media"]) / math.sqrt((t["de"] ** 2 + c["de"] ** 2) / 2), 3
+                ),
+            }
+        )
+    n = desc.drop_duplicates("grupo").set_index("grupo")["n"]
+    return {"filas": filas, "tratadas": int(n["tratados"]), "controles": int(n["controles"])}
