@@ -166,6 +166,68 @@ def uso() -> dict:
         ),
         "banca_desarrollo": _series_banca_desarrollo(),
         "portafolio": _portafolio_banco(),
+        "acceso": _acceso(),
+    }
+
+
+MARGINACION = {
+    "Muy bajo": "muy baja",
+    "Bajo": "baja",
+    "Medio": "media",
+    "Alto": "alta",
+    "Muy alto": "muy alta",
+}
+
+
+def _acceso() -> dict | None:
+    """Fase 6 (descriptivo): distancia de los 65+ a la sucursal, ENIF, cobro local y foto del padrón."""
+    acc = _leer_opcional("fase6_accesibilidad")
+    enif = _leer_opcional("fase6_enif_apoyos")
+    cobro = _leer_opcional("fase6_cobro_local")
+    foto = _leer_opcional("fase6_pub_ajuste")
+    if acc is None or enif is None or cobro is None or foto is None:
+        return None
+    a = acc[
+        (acc["poblacion_tipo"] == "65 y más") & acc["grupo_tipo"].isin(["nacional", "marginacion"])
+    ]
+    serie = [
+        {
+            "corte": f.corte.replace("Q", "T"),
+            "grupo": "Nacional"
+            if f.grupo_tipo == "nacional"
+            else f"Marginación {MARGINACION[f.grupo]}",
+            "cota": f.cota,
+            "pct10": _limpio(f.pct_a_10km, 2),
+            "km": _limpio(f.km_media, 2),
+        }
+        for f in a.itertuples()
+    ]
+    e = enif.set_index(["anio", "tamano_localidad"])
+    tx = cobro.set_index("grupo")["tx_por_beneficiario_bimestre"]
+    f = foto.set_index(["resultado", "termino"])
+    return {
+        "serie": serie,
+        "enif": {
+            str(anio): {
+                "cuenta": _limpio(e.loc[(anio, "nacional"), "pct_cuenta_para_apoyos"], 1),
+                "cuenta_rural": _limpio(
+                    e.loc[(anio, "menos de 2,500"), "pct_cuenta_para_apoyos"], 1
+                ),
+                "sucursal": _limpio(e.loc[(anio, "nacional"), "pct_uso_sucursal"], 1),
+                "minutos_rural": _limpio(
+                    e.loc[(anio, "menos de 2,500"), "minutos_sucursal_mediana"], 0
+                ),
+            }
+            for anio in (2021, 2024)
+        },
+        "cobro": {
+            "tratado": _limpio(tx["tratado_2022_2024"], 2),
+            "sin_sucursal": _limpio(tx["sin_apertura"], 2),
+        },
+        "foto": {
+            "benef": _limpio(f.loc[("benef_100hab", "grupotratado_2022_2024"), "dif"], 2),
+            "benef_ee": _limpio(f.loc[("benef_100hab", "grupotratado_2022_2024"), "ee"], 2),
+        },
     }
 
 
@@ -484,15 +546,25 @@ def _viirs_calendario() -> dict:
 
 
 def _denue() -> list[dict]:
-    """Efecto en el padrón del DENUE por distancia a la sucursal (decaimiento espacial)."""
-    d = _leer("decaimiento_estab_emprendimiento_pc")
-    d = d[d["banda"].notna() & (d["banda"].astype(str) != "")]
+    """Efecto en el padrón del DENUE por distancia a la sucursal, en niveles (fase 6, C5); sin esa
+    tabla, las bandas en % de la corrida principal."""
+    d = _leer_opcional("fase6_radios_estab_emprendimiento_pc")
+    if d is None:
+        d = _leer("decaimiento_estab_emprendimiento_pc")
+        d = d[d["banda"].notna() & (d["banda"].astype(str) != "")].assign(
+            estab_implicados=math.nan, pct_del_total=math.nan
+        )
     return [
         {
             "banda": str(f.banda),
-            "pct": _limpio(f.efecto_pct, 3),
+            "pct": _limpio(f.efecto_pct if "efecto_pct" in d else 100 * f.att / f.media_base, 3),
             "lo": _limpio(100 * (f.att - 1.645 * f.ee) / f.media_base, 3),
             "hi": _limpio(100 * (f.att + 1.645 * f.ee) / f.media_base, 3),
+            "att": _limpio(f.att, 3),
+            "att_lo": _limpio(f.att - 1.645 * f.ee, 3),
+            "att_hi": _limpio(f.att + 1.645 * f.ee, 3),
+            "implicados": _limpio(f.estab_implicados, 0),
+            "pct_total": _limpio(f.pct_del_total, 1),
             "wald_p": _limpio(f.pre_wald_p, 4),
             "tratadas": int(f.tratadas),
         }

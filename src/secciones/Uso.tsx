@@ -32,6 +32,37 @@ export function Uso({ datos }: { datos: Datos }) {
   const promedioMes =
     portafolio.mensual.slice(-12).reduce((a, m) => a + m.por_tarjeta, 0) / Math.min(12, portafolio.mensual.length);
   const elegida = estimaciones[serie];
+  const plazo = estimaciones.capt_plazo_bd_pc;
+  const transacciones = estimaciones.transacciones_cajeros_bd_pc;
+  const acceso = datos.uso.acceso;
+  const nacional = (corte: string) =>
+    acceso?.serie.find((s) => s.grupo === "Nacional" && s.cota === "optimista" && s.corte === corte);
+  const antes = nacional("2019T1");
+  const despues = nacional("2024T4");
+  const muyAlta = (corte: string) =>
+    acceso?.serie.find((s) => s.grupo === "Marginación muy alta" && s.cota === "optimista" && s.corte === corte);
+
+  const opcionesAcceso = useCallback(
+    (ancho: number): Plot.PlotOptions => {
+      const filas = (acceso?.serie ?? []).filter(
+        (s) => s.cota === "optimista" && (s.grupo === "Nacional" || s.grupo === "Marginación muy alta" || s.grupo === "Marginación muy baja"),
+      );
+      return {
+        width: ancho,
+        height: 250,
+        marginLeft: 44,
+        marginRight: 150,
+        x: { label: null, domain: ["2019T1", "2021T4", "2022T4", "2023T4", "2024T4"], padding: 0.3 },
+        y: { label: "% de los adultos de 65+ a 10 km o menos", labelAnchor: "top", grid: true, domain: [0, 100] },
+        marks: [
+          Plot.lineY(filas, { x: "corte", y: "pct10", z: "grupo", stroke: (d) => (d.grupo === "Nacional" ? TINTA : d.grupo.endsWith("alta") ? AZUL : GRIS), strokeWidth: 2 }),
+          Plot.dot(filas, { x: "corte", y: "pct10", r: 2.5, fill: (d) => (d.grupo === "Nacional" ? TINTA : d.grupo.endsWith("alta") ? AZUL : GRIS), tip: true, title: (d) => `${d.grupo}, ${d.corte}\n${num(d.pct10, 0)}% a 10 km o menos\n${num(d.km, 1)} km en promedio` }),
+          Plot.text(filas, Plot.selectLast({ x: "corte", y: "pct10", z: "grupo", text: "grupo", dx: 6, textAnchor: "start", fill: TINTA })),
+        ],
+      };
+    },
+    [acceso],
+  );
 
   const opcionesEvento = useCallback(
     (ancho: number) =>
@@ -97,11 +128,53 @@ export function Uso({ datos }: { datos: Datos }) {
         </p>
       </header>
 
+      {acceso && antes && despues && (
+        <div className="rejilla" style={{ marginBottom: "2.5rem" }}>
+          <div>
+            <h3>Más cerca, no necesariamente más</h3>
+            <ul className="respuesta" style={{ marginTop: "0.6rem" }}>
+              <li>
+                Los adultos de 65 años o más quedaron, en promedio, a <strong>{num(despues.km, 1)} km</strong>{" "}
+                de una sucursal del banco, contra {num(antes.km, 1)} km en 2019; a 10 km o menos viven el{" "}
+                {num(despues.pct10, 0)}%, contra {num(antes.pct10, 0)}%
+                {muyAlta("2019T1") && muyAlta("2024T4")
+                  ? ` (en los municipios de marginación muy alta, de ${num(muyAlta("2019T1")!.pct10, 0)}% a ${num(muyAlta("2024T4")!.pct10, 0)}%)`
+                  : ""}
+                .
+                <span>Censo 2020 y fechas de apertura de la CNBV. Solo cuenta sucursales del banco.</span>
+              </li>
+              <li>
+                Entre quienes reciben apoyos, los que tienen cuenta para cobrarlos pasaron de{" "}
+                {num(acceso.enif["2021"].cuenta, 0)}% a <strong>{num(acceso.enif["2024"].cuenta, 0)}%</strong>, y donde hay
+                sucursal hay {num(acceso.cobro.tratado, 1)} retiros en cajeros del banco por beneficiario y
+                bimestre, contra {num(acceso.cobro.sin_sucursal, 2)} donde no la hay.
+                <span>ENIF 2021 y 2024; Portafolio de la CNBV y padrón de Bienestar, 2026.</span>
+              </li>
+              <li>
+                Si llegaron <strong>más</strong> programas no se puede saber: el padrón por municipio y
+                periodo solo se publica como listas de personas. En la foto de 2026, los municipios con
+                sucursal nueva tienen {num(acceso.foto.benef, 1)} beneficiarios más por cada 100
+                habitantes que los que no abrieron, pero sin un dato previo no se distingue de dónde decidió
+                abrir el banco.
+                <span>Descriptivo, condicional en covariables y estado.</span>
+              </li>
+            </ul>
+          </div>
+          <figure>
+            <h3>Adultos mayores cerca de una sucursal</h3>
+            <Grafica opciones={opcionesAcceso} descripcion="Adultos de 65 y más a 10 km o menos de una sucursal del banco" />
+            <figcaption>Descriptivo. Si en un municipio con varias sucursales todas abren con la primera.</figcaption>
+          </figure>
+        </div>
+      )}
+
       <ul className="respuesta" style={{ marginTop: 0 }}>
         <li>
           Por cada 10 mil adultos, el banco abrió <strong>+{num(capt.att)} cuentas</strong> y{" "}
           <strong>+{num(tarj.att)} tarjetas</strong> de débito, pero solo{" "}
-          <strong>+{num(cred.att, 1)} créditos</strong>: menos de uno por cada 100 cuentas nuevas.
+          <strong>+{num(cred.att, 1)} créditos</strong>: menos de uno por cada 100 cuentas nuevas
+          {plazo ? <>, y {num(plazo.att, 1)} depósitos a plazo</> : null}
+          {transacciones ? <>; sus cajeros registran {num(transacciones.att)} transacciones más por trimestre</> : null}.
           <span>
             Exploratorio: Callaway y Sant'Anna con {num(capt.tratadas)} municipios que abren en
             2023–2025 contra {num(capt.controles)} controles, sin tendencia previa (p = {p(capt.wald_p)},{" "}

@@ -1,7 +1,7 @@
 import * as Plot from "@observablehq/plot";
 import { useCallback, useMemo, useState } from "react";
 import { Segmentado, Selector } from "../componentes/Controles";
-import { AZUL, AZUL_BANDA, GRIS, Grafica, TINTA } from "../componentes/Grafica";
+import { AZUL, GRIS, Grafica, TINTA } from "../componentes/Grafica";
 import { intervalo, num, p, pct } from "../lib/formato";
 import { evento, filasDecisiones, intervalos } from "../lib/graficas";
 import type { Datos, ResultadoTema, Tema } from "../lib/tipos";
@@ -36,10 +36,10 @@ function lectura(tema: Tema, datos: Datos): string {
   switch (tema) {
     case "emprendimiento": {
       const propia = t.denue.find((d) => d.banda === "sucursal propia");
-      const lejos = t.denue.find((d) => d.banda === "5–10 km");
       const ue = buscar(t.emprendimiento, "Unidades económicas");
       const negocio = buscar(t.emprendimiento, "Hogares con negocio propio");
-      return `El padrón de negocios del DENUE sube ${pct(propia?.pct ?? NaN)} donde abre el banco, pero sube casi igual en las localidades vecinas y desaparece a 5–10 km (${pct(lejos?.pct ?? NaN)}). Los Censos Económicos no ven más unidades económicas (${pct(ue?.pct ?? NaN)}) y la Intercensal no ve más hogares con negocio (${pct(negocio?.pct ?? NaN)}). Más que nuevos negocios, es un cambio en cómo se midió el padrón.`;
+      const concentra = propia?.pct_total != null ? ` y el ${num(propia.pct_total, 0)}% de los establecimientos de más está en esa misma localidad` : "";
+      return `El padrón de negocios del DENUE sube ${pct(propia?.pct ?? NaN)} donde abre el banco${concentra}. Pero no se comporta como gasto de los programas: no se concentra en el comercio, no es mayor donde viven más adultos mayores y no crece con el tiempo abierto. Los Censos Económicos no ven más unidades económicas (${pct(ue?.pct ?? NaN)}) y la Intercensal no ve más hogares con negocio (${pct(negocio?.pct ?? NaN)}). Con la regla preregistrada, no se distingue entre gasto y medición.`;
     }
     case "empleo": {
       const inf = buscar(t.empleo, "Ocupados en la informalidad");
@@ -104,35 +104,31 @@ export function Temas({ datos }: { datos: Datos }) {
 
   const opcionesDenue = useCallback(
     (ancho: number): Plot.PlotOptions => {
-      const orden = ["sucursal propia", "0–2 km", "2–5 km", "5–10 km"];
-      const etiquetas: Record<string, string> = {
-        "sucursal propia": "Con sucursal",
-        "0–2 km": "Vecina a 0–2 km",
-        "2–5 km": "Vecina a 2–5 km",
-        "5–10 km": "Vecina a 5–10 km",
-      };
-      const d = datos.temas.denue
-        .filter((x) => orden.includes(x.banda))
-        .map((x) => ({ ...x, nombre: etiquetas[x.banda] }));
+      const d = datos.temas.denue.map((x) => ({
+        ...x,
+        nombre: x.banda === "sucursal propia" ? "Con sucursal" : x.banda,
+      }));
       return {
         width: ancho,
         height: 240,
         marginLeft: 44,
-        x: { label: null, domain: orden.map((o) => etiquetas[o]), padding: 0.5 },
-        y: { label: "Establecimientos, % de la media previa", labelAnchor: "top", grid: true },
+        x: { label: "Vecinas sin sucursal, km a la sucursal →", domain: d.map((x) => x.nombre), padding: 0.5 },
+        y: { label: "Establecimientos de más por mil habitantes", labelAnchor: "top", grid: true },
         marks: [
-          Plot.rectY([0], { y1: -datos.resumen.sesoi, y2: datos.resumen.sesoi, fill: AZUL_BANDA }),
           Plot.ruleY([0], { stroke: GRIS, strokeDasharray: "4 3" }),
-          Plot.ruleX(d, { x: "nombre", y1: "lo", y2: "hi", stroke: TINTA, strokeWidth: 1.5 }),
+          Plot.ruleX(d, { x: "nombre", y1: "att_lo", y2: "att_hi", stroke: TINTA, strokeWidth: 1.5 }),
           Plot.dot(d, {
             x: "nombre",
-            y: "pct",
+            y: "att",
             r: 5,
             fill: (x) => (x.wald_p < 0.05 ? "#ffffff" : AZUL),
             stroke: AZUL,
             strokeWidth: 1.5,
             tip: true,
-            title: (x) => `${x.nombre}\n${pct(x.pct)} ${intervalo(x.lo, x.hi)}\npre-prueba p = ${p(x.wald_p)}`,
+            title: (x) =>
+              `${x.nombre}\n${num(x.att, 2)} por mil (${pct(x.pct)} de su media)` +
+              (x.implicados != null ? `\n≈ ${num(x.implicados)} establecimientos` : "") +
+              `\npre-prueba p = ${p(x.wald_p)}`,
           }),
         ],
       };
@@ -213,11 +209,12 @@ export function Temas({ datos }: { datos: Datos }) {
       {tema === "emprendimiento" && (
         <>
           <figure style={{ marginTop: "2.5rem" }}>
-            <h3>El padrón sube también en las vecinas</h3>
+            <h3>El aumento se concentra donde está la sucursal</h3>
             <p className="nota" style={{ marginBottom: "0.6rem" }}>
-              Efecto en establecimientos del DENUE en la actualización censal de 2024, según la
-              distancia a la sucursal. Un efecto del banco debería concentrarse donde está la sucursal.
-              Huecos: reprueban la pre-prueba.
+              Efecto en establecimientos del DENUE por mil habitantes en la actualización censal de
+              2024, según la distancia a la sucursal; IC al 90%. En porcentaje las vecinas cercanas
+              suben parecido porque su base es cinco veces menor; en establecimientos, la localidad con
+              sucursal concentra casi todo el aumento. Huecos: reprueban la pre-prueba.
             </p>
             <Grafica opciones={opcionesDenue} descripcion="Efecto en el DENUE por distancia a la sucursal" />
           </figure>

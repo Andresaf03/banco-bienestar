@@ -148,11 +148,30 @@ export interface EstimacionUso {
   controles: number;
 }
 
+export type SerieUso =
+  | "capt_total_bd_pc"
+  | "cred_total_bd_pc"
+  | "tarjetas_debito_bd_pc"
+  | "capt_plazo_bd_pc"
+  | "cred_personal_bd_pc"
+  | "transacciones_cajeros_bd_pc";
+
+/** Fase 6 (descriptivo): acceso al cobro de los programas. */
+export interface Acceso {
+  /** Adultos de 65+: % a 10 km o menos y km promedio a la sucursal más cercana, por corte. */
+  serie: { corte: string; grupo: string; cota: "optimista" | "pesimista"; pct10: number; km: number }[];
+  /** ENIF, entre quienes reciben apoyos de gobierno. */
+  enif: Record<"2021" | "2024", { cuenta: number; cuenta_rural: number; sucursal: number; minutos_rural: number }>;
+  /** Transacciones en cajeros del banco por beneficiario y bimestre (2026). */
+  cobro: { tratado: number; sin_sucursal: number };
+  /** Foto del padrón (oct-2026): beneficiarios por 100 habitantes, tratados − sin apertura, ajustado. */
+  foto: { benef: number; benef_ee: number };
+}
+
 export interface Uso {
-  estimaciones: Record<
-    "capt_total_bd_pc" | "cred_total_bd_pc" | "tarjetas_debito_bd_pc",
-    EstimacionUso & { evento: PuntoEvento[] }
-  >;
+  estimaciones: Partial<Record<SerieUso, EstimacionUso & { evento: PuntoEvento[] }>> &
+    Record<"capt_total_bd_pc" | "cred_total_bd_pc" | "tarjetas_debito_bd_pc", EstimacionUso & { evento: PuntoEvento[] }>;
+  acceso: Acceso | null;
   transacciones_cajero: EstimacionUso;
   tarjetas_credito_bm: { pct: number; lo: number; hi: number; wald_p: number };
   por_tarjeta_evento: { e: number; v: number; n: number }[];
@@ -194,7 +213,17 @@ export interface ResultadoTema extends Intervalo {
 export type Tema = "emprendimiento" | "empleo" | "violencia" | "politica" | "hogares";
 
 export type Temas = Record<Tema, ResultadoTema[]> & {
-  denue: ({ banda: string; wald_p: number; tratadas: number } & Intervalo)[];
+  /** DENUE por distancia a la sucursal: % de la media (pct, lo, hi) y niveles por mil (att*). */
+  denue: ({
+    banda: string;
+    wald_p: number;
+    tratadas: number;
+    att: number;
+    att_lo: number;
+    att_hi: number;
+    implicados: number | null;
+    pct_total: number | null;
+  } & Intervalo)[];
 };
 
 export interface Covariables {

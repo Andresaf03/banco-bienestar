@@ -214,9 +214,10 @@ export function Efecto({ datos }: { datos: Datos }) {
       <h3 className="subtitulo">Fuera del sistema financiero</h3>
       <p className="nota" style={{ marginBottom: "1rem" }}>
         Las mismas aperturas contra empleo, negocios, luz nocturna, delitos y votos. Los puntos huecos
-        reprueban la pre-prueba y solo son descriptivos. El aumento de establecimientos del DENUE no se
-        lee como efecto de la sucursal: aparece igual en las localidades vecinas, no crece con el tiempo
-        de exposición y no aparece en los Censos Económicos.
+        reprueban la pre-prueba y solo son descriptivos. El aumento de establecimientos del DENUE se
+        concentra en la localidad con sucursal, pero no se puede atribuir al gasto de los programas: no
+        se concentra en el comercio, no crece con el tiempo de exposición y no aparece en los Censos
+        Económicos.
       </p>
       <figure>
         <Grafica opciones={opcionesExtensiones} descripcion="Efectos en otras fuentes de datos" />

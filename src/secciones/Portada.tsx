@@ -124,6 +124,10 @@ export function Portada({ datos }: { datos: Datos }) {
   const privadas = datos.efectos.find((e) => e.clave === "privado")!.cabecera;
   const primera = datos.efectos.find((e) => e.clave === "total")!.cabecera;
   const r = datos.resumen;
+  const nacional65 = (corte: string) =>
+    datos.uso.acceso?.serie.find((s) => s.grupo === "Nacional" && s.cota === "optimista" && s.corte === corte);
+  const acceso2019 = nacional65("2019T1");
+  const acceso2024 = nacional65("2024T4");
   const tratadas = privadas.tratadas;
   const nuevos = municipios.filter((m) => !m.ya && m.G >= 2 && m.G <= 24).length;
 
@@ -254,6 +258,14 @@ export function Portada({ datos }: { datos: Datos }) {
             Se descartan efectos mayores a ±5%: ni atracción ni desplazamiento.
           </span>
         </li>
+        {acceso2024 && acceso2019 && (
+          <li>
+            Acercó el cobro de los programas: los adultos mayores quedaron a{" "}
+            <strong>{num(acceso2024.km, 1)} km</strong> de una sucursal del banco, contra{" "}
+            {num(acceso2019.km, 1)} km en 2019.
+            <span>Si llegaron más programas no se puede saber con datos públicos. Detalle en Uso.</span>
+          </li>
+        )}
         <li>
           Pero las cuentas no traen crédito: por cada 100 cuentas nuevas, menos de un crédito, y sus
           tarjetas se usan unas {num(r.transacciones_por_tarjeta, 1)} veces por trimestre en cajeros que
