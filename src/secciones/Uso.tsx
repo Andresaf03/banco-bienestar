@@ -36,16 +36,16 @@ export function Uso({ datos }: { datos: Datos }) {
   const transacciones = estimaciones.transacciones_cajeros_bd_pc;
   const acceso = datos.uso.acceso;
   const nacional = (corte: string) =>
-    acceso?.serie.find((s) => s.grupo === "Nacional" && s.cota === "optimista" && s.corte === corte);
+    acceso?.serie.find((s) => s.grupo === "Nacional" && s.cota === "central" && s.corte === corte);
   const antes = nacional("2019T1");
   const despues = nacional("2024T4");
   const muyAlta = (corte: string) =>
-    acceso?.serie.find((s) => s.grupo === "Marginación muy alta" && s.cota === "optimista" && s.corte === corte);
+    acceso?.serie.find((s) => s.grupo === "Marginación muy alta" && s.cota === "central" && s.corte === corte);
 
   const opcionesAcceso = useCallback(
     (ancho: number): Plot.PlotOptions => {
       const filas = (acceso?.serie ?? []).filter(
-        (s) => s.cota === "optimista" && (s.grupo === "Nacional" || s.grupo === "Marginación muy alta" || s.grupo === "Marginación muy baja"),
+        (s) => s.cota === "central" && (s.grupo === "Nacional" || s.grupo === "Marginación muy alta" || s.grupo === "Marginación muy baja"),
       );
       return {
         width: ancho,
@@ -163,7 +163,7 @@ export function Uso({ datos }: { datos: Datos }) {
           <figure>
             <h3>Adultos mayores cerca de una sucursal</h3>
             <Grafica opciones={opcionesAcceso} descripcion="Adultos de 65 y más a 10 km o menos de una sucursal del banco" />
-            <figcaption>Descriptivo. Si en un municipio con varias sucursales todas abren con la primera.</figcaption>
+            <figcaption>Descriptivo. En municipios con varias sucursales, abren en orden de población conforme sube el conteo de la CNBV.</figcaption>
           </figure>
         </div>
       )}

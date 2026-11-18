@@ -38,7 +38,9 @@ function lectura(tema: Tema, datos: Datos): string {
       const propia = t.denue.find((d) => d.banda === "sucursal propia");
       const ue = buscar(t.emprendimiento, "Unidades económicas");
       const negocio = buscar(t.emprendimiento, "Hogares con negocio propio");
-      const concentra = propia?.pct_total != null ? ` y el ${num(propia.pct_total, 0)}% de los establecimientos de más está en esa misma localidad` : "";
+      const cercanas = ["sucursal propia", "0–1 km", "1–2 km", "2–3 km"];
+      const cerca = t.denue.filter((d) => cercanas.includes(d.banda)).reduce((a, d) => a + (d.pct_total ?? 0), 0);
+      const concentra = propia?.pct_total != null ? `, y el ${num(cerca, 0)}% de los establecimientos de más está a menos de 3 km de la sucursal` : "";
       return `El padrón de negocios del DENUE sube ${pct(propia?.pct ?? NaN)} donde abre el banco${concentra}. Pero no se comporta como gasto de los programas: no se concentra en el comercio, no es mayor donde viven más adultos mayores y no crece con el tiempo abierto. Los Censos Económicos no ven más unidades económicas (${pct(ue?.pct ?? NaN)}) y la Intercensal no ve más hogares con negocio (${pct(negocio?.pct ?? NaN)}). Con la regla preregistrada, no se distingue entre gasto y medición.`;
     }
     case "empleo": {
@@ -214,7 +216,8 @@ export function Temas({ datos }: { datos: Datos }) {
               Efecto en establecimientos del DENUE por mil habitantes en la actualización censal de
               2024, según la distancia a la sucursal; IC al 90%. En porcentaje las vecinas cercanas
               suben parecido porque su base es cinco veces menor; en establecimientos, la localidad con
-              sucursal concentra casi todo el aumento. Huecos: reprueban la pre-prueba.
+              sucursal y las vecinas a menos de 3 km concentran más del 90% del aumento, y más lejos no
+              se distingue de cero. Huecos: reprueban la pre-prueba.
             </p>
             <Grafica opciones={opcionesDenue} descripcion="Efecto en el DENUE por distancia a la sucursal" />
           </figure>

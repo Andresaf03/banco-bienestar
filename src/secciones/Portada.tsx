@@ -125,7 +125,7 @@ export function Portada({ datos }: { datos: Datos }) {
   const primera = datos.efectos.find((e) => e.clave === "total")!.cabecera;
   const r = datos.resumen;
   const nacional65 = (corte: string) =>
-    datos.uso.acceso?.serie.find((s) => s.grupo === "Nacional" && s.cota === "optimista" && s.corte === corte);
+    datos.uso.acceso?.serie.find((s) => s.grupo === "Nacional" && s.cota === "central" && s.corte === corte);
   const acceso2019 = nacional65("2019T1");
   const acceso2024 = nacional65("2024T4");
   const tratadas = privadas.tratadas;

@@ -159,7 +159,7 @@ export type SerieUso =
 /** Fase 6 (descriptivo): acceso al cobro de los programas. */
 export interface Acceso {
   /** Adultos de 65+: % a 10 km o menos y km promedio a la sucursal más cercana, por corte. */
-  serie: { corte: string; grupo: string; cota: "optimista" | "pesimista"; pct10: number; km: number }[];
+  serie: { corte: string; grupo: string; cota: "central" | "optimista" | "pesimista"; pct10: number; km: number }[];
   /** ENIF, entre quienes reciben apoyos de gobierno. */
   enif: Record<"2021" | "2024", { cuenta: number; cuenta_rural: number; sucursal: number; minutos_rural: number }>;
   /** Transacciones en cajeros del banco por beneficiario y bimestre (2026). */
