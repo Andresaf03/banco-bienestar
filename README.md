@@ -8,9 +8,9 @@ para quien tiene que decidir, no para quien quiere leer el código.
 |---|---|
 | Mapa | Ver la expansión 2019–2025 trimestre por trimestre, buscar un municipio y abrir su ficha: cuándo llegó el banco, si entra en la estimación y cómo se movieron sus sucursales privadas |
 | Respuesta | La conclusión en tres frases y qué implica para decidir |
-| Uso | ¿Se usan las cuentas? Cuentas, tarjetas y crédito del banco al abrir (fase 5, exploratoria), créditos por cada 100 cuentas contra la banca múltiple y uso de las tarjetas |
+| Uso | ¿Se usan las cuentas? Primero, el acceso al cobro de los programas (distancia de los adultos mayores a la sucursal, ENIF y retiros por beneficiario; fase 6, descriptivo); luego cuentas, tarjetas, depósitos a plazo y crédito del banco al abrir (fase 5, exploratoria), créditos por cada 100 cuentas contra la banca múltiple y uso de las tarjetas |
 | Banca privada | Estudio de evento de 9 resultados con tres estimadores. El veredicto se reescribe cuando se mueve el umbral de equivalencia. Incluye el efecto por cohorte, HonestDiD y los resultados fuera del sistema financiero |
-| Más allá | Emprendimiento, empleo e informalidad, violencia, política y hogares: efecto, lectura y estudio de evento de cada resultado. El aumento del DENUE por distancia a la sucursal y con cada decisión cambiada |
+| Más allá | Emprendimiento, empleo e informalidad, violencia, política y hogares: efecto, lectura y estudio de evento de cada resultado. El aumento del DENUE por distancia a la sucursal, en establecimientos por mil habitantes, y con cada decisión cambiada |
 | Pruebas | Otros estimadores, otros controles, fechas al azar, sin un estado a la vez, una decisión a la vez (Simmons et al. 2011), heterogeneidad, placebo y derrames |
 | Escenario | Qué cabría esperar si el banco abriera donde todavía no está (tarjetas, cuentas, créditos y sucursales privadas), con su intervalo |
 | Laboratorio | Vuelve a estimar Callaway y Sant'Anna en el navegador con la muestra que se elija (estados, banca previa, marginación, población, grupo de control) |

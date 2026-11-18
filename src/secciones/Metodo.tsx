@@ -205,16 +205,19 @@ export function Metodo({ datos }: { datos: Datos }) {
               Una especificación, el TWFE extendido con covariables, da{" "}
               {etwfe ? pct(etwfe.pct) : "un efecto positivo"}, pero se apoya en comparar contra los
               municipios que nunca abren, y esa comparación da +1.9% aun con fechas al azar. Lo que se
-              sostiene es ±5% en las dos direcciones.
+              sostiene es ±5% en las dos direcciones. En las cooperativas y financieras populares
+              (EACP), comparando solo por calendario, no se descarta un desplazamiento de hasta 7%.
             </li>
             <li>Las aperturas van de 2022 a 2024: hay entre uno y tres años de seguimiento.</li>
           </ul>
           <h3 style={{ margin: "1.6rem 0 0.8rem" }}>Siguiente paso</h3>
           <p className="prosa">
             Con datos públicos ya se midió el crédito y las cuentas que trae el banco (sección Uso). Lo
-            que falta solo lo tiene el banco: cuentas activas, saldos y crédito por sucursal, que se
-            pueden pedir por transparencia. Además, repetir el análisis con los trimestres de 2026,
-            cuando las aperturas de 2024 tengan más años de seguimiento.
+            que falta no es público y se puede pedir por transparencia: el padrón de beneficiarios
+            agregado por municipio y bimestre (¿llegaron más programas?), las fechas de obra de cada
+            sucursal (¿es la sucursal o su construcción?) y las cuentas activas, saldos y crédito por
+            sucursal. Además, repetir el análisis con los trimestres de 2026, cuando las aperturas de
+            2024 tengan más años de seguimiento.
           </p>
         </div>
       </div>
