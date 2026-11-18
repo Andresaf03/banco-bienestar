@@ -251,7 +251,7 @@ export function Portada({ datos }: { datos: Datos }) {
           cooperativas y financieras populares, con un intervalo de{" "}
           {intervalo((100 * privadas.ic90[0]) / privadas.media, (100 * privadas.ic90[1]) / privadas.media)}.
           <span>
-            Se descartan efectos mayores a ±{num(privadas.cota, 1)}%: ni atracción ni desplazamiento.
+            Se descartan efectos mayores a ±5%: ni atracción ni desplazamiento.
           </span>
         </li>
         <li>

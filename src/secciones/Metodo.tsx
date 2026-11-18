@@ -202,8 +202,10 @@ export function Metodo({ datos }: { datos: Datos }) {
             </li>
             <li>La ubicación no fue al azar: el resultado descansa en las tendencias paralelas.</li>
             <li>
-              “No desplazó” es más firme que “no atrajo”: una especificación, el TWFE extendido con
-              covariables, da {etwfe ? pct(etwfe.pct) : "un efecto positivo"}.
+              Una especificación, el TWFE extendido con covariables, da{" "}
+              {etwfe ? pct(etwfe.pct) : "un efecto positivo"}, pero se apoya en comparar contra los
+              municipios que nunca abren, y esa comparación da +1.9% aun con fechas al azar. Lo que se
+              sostiene es ±5% en las dos direcciones.
             </li>
             <li>Las aperturas van de 2022 a 2024: hay entre uno y tres años de seguimiento.</li>
           </ul>
