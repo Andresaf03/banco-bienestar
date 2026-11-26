@@ -29,6 +29,7 @@ import pandas as pd
 from comun import _fila, _guardar, _leer, _leer_opcional, _limpio, _registros, _veredicto
 from temas import covariables, temas, uso
 
+from proyecto.construccion.panel import aplicar_crosswalk
 from proyecto.utils.entregables import DECISIONES, Z90
 from proyecto.utils.io import INTERIM, PROCESSED, parametros
 
@@ -170,8 +171,8 @@ EFECTOS = [
 
 # Lectura del proyecto que la regla mecánica no captura (CLAUDE.md §5.bis, diseños alternativos).
 NOTAS = {
-    "DENUE": "Sube el padrón en la actualización censal de 2024, pero sin dosis, igual en las "
-    "vecinas a 0–2 km y sin reflejo en los Censos Económicos: medición, no efecto de la sucursal.",
+    "DENUE": "El padrón crece cerca de las sucursales en la actualización de 2024. "
+    "Las pruebas no permiten distinguir entre el gasto de los programas y cambios de medición.",
     "Satélite VIIRS": "Contra localidades lejanas la pre-prueba falla porque la luz cambia distinto "
     "según el brillo; entre localidades con sucursal, por fecha de apertura, los previos son planos "
     "y el efecto es nulo.",
@@ -359,7 +360,11 @@ def sucursales_json(ids: list[str]) -> dict:
     suc = suc[suc["t"].between(*VENTANA_MAPA)]
     periodos = sorted(suc["t"].unique())
     etiquetas = suc.drop_duplicates("t").set_index("t")["periodo"].to_dict()
-    ancho = suc.pivot_table(index="cve_mun", columns="t", values="suc_bienestar", aggfunc="sum")
+    # El mapa usa las mismas claves estables que el panel, incluso para municipios nuevos.
+    suc = aplicar_crosswalk(
+        suc[["cve_mun", "t", "suc_bienestar"]], ["suc_bienestar"], ["cve_mun", "t"]
+    )
+    ancho = suc.pivot(index="cve_mun", columns="t", values="suc_bienestar")
     ancho = ancho.reindex(index=ids, columns=periodos)
     valores = [None if pd.isna(v) else int(round(v)) for v in ancho.to_numpy().ravel()]
     return {
