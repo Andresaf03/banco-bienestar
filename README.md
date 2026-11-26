@@ -32,14 +32,17 @@ Otras órdenes: `npm test` (valida el estimador contra R), `npm run build` (siti
 
 ## De dónde salen los datos
 
-La app no estima nada en el servidor. Desde la raíz del proyecto, con la batería ya corrida:
+La app no estima nada en el servidor. Para reconstruir los insumos, sigue la sección
+[Reproducir](https://github.com/Andresaf03/banco-bienestar-evaluacion#reproducir) del proyecto.
+Desde la raíz del repositorio de análisis, con la batería principal y
+las fases 2, 3, 4 y 6 listas:
 
 ```bash
 make app-datos
 ```
 
-Esa orden corre primero `make uso` (la fase 5: panel de la banca de desarrollo y su estimación) y
-luego tres pasos:
+Esa orden corre `make diagnosticos` (soporte común, balance y Goodman-Bacon) y `make uso`
+(la fase 5: panel de la banca de desarrollo y su estimación). Luego hace tres pasos:
 
 1. `datos/exportar.py` (con `datos/comun.py` y `datos/temas.py`) lee `outputs/tablas/` y los paneles
    y escribe los JSON de `public/datos/`. Las cifras de las secciones salen de ahí, nunca se copian

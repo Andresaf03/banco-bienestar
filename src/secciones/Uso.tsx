@@ -14,6 +14,13 @@ const SERIES: Record<Serie, string> = {
   cred_total_bd_pc: "Créditos",
 };
 
+/** Grupos de la gráfica de acceso: color de la línea y desplazamiento vertical de su etiqueta. */
+const GRUPOS_ACCESO: Record<string, { color: string; dy: number }> = {
+  Nacional: { color: TINTA, dy: 7 },
+  "Marginación muy baja": { color: GRIS, dy: -7 },
+  "Marginación muy alta": { color: AZUL, dy: 0 },
+};
+
 /** "2025Q4" → índice de trimestre (2019T1 = 1). */
 function indice(periodo: string): number {
   return (Number(periodo.slice(0, 4)) - 2019) * 4 + Number(periodo.slice(-1));
@@ -44,20 +51,28 @@ export function Uso({ datos }: { datos: Datos }) {
 
   const opcionesAcceso = useCallback(
     (ancho: number): Plot.PlotOptions => {
-      const filas = (acceso?.serie ?? []).filter(
-        (s) => s.cota === "central" && (s.grupo === "Nacional" || s.grupo === "Marginación muy alta" || s.grupo === "Marginación muy baja"),
-      );
+      const filas = (acceso?.serie ?? []).filter((s) => s.cota === "central" && s.grupo in GRUPOS_ACCESO);
+      const color = (d: { grupo: string }) => GRUPOS_ACCESO[d.grupo].color;
       return {
         width: ancho,
         height: 250,
         marginLeft: 44,
         marginRight: 150,
-        x: { label: null, domain: ["2019T1", "2021T4", "2022T4", "2023T4", "2024T4"], padding: 0.3 },
+        // En pantallas angostas los trimestres no caben: basta el año.
+        x: {
+          label: null,
+          domain: ["2019T1", "2021T4", "2022T4", "2023T4", "2024T4"],
+          padding: 0.3,
+          tickFormat: (c: string) => (ancho < 520 ? c.slice(0, 4) : c),
+        },
         y: { label: "% de los adultos de 65+ a 10 km o menos", labelAnchor: "top", grid: true, domain: [0, 100] },
         marks: [
-          Plot.lineY(filas, { x: "corte", y: "pct10", z: "grupo", stroke: (d) => (d.grupo === "Nacional" ? TINTA : d.grupo.endsWith("alta") ? AZUL : GRIS), strokeWidth: 2 }),
-          Plot.dot(filas, { x: "corte", y: "pct10", r: 2.5, fill: (d) => (d.grupo === "Nacional" ? TINTA : d.grupo.endsWith("alta") ? AZUL : GRIS), tip: true, title: (d) => `${d.grupo}, ${d.corte}\n${num(d.pct10, 0)}% a 10 km o menos\n${num(d.km, 1)} km en promedio` }),
-          Plot.text(filas, Plot.selectLast({ x: "corte", y: "pct10", z: "grupo", text: "grupo", dx: 6, textAnchor: "start", fill: TINTA })),
+          Plot.lineY(filas, { x: "corte", y: "pct10", z: "grupo", stroke: color, strokeWidth: 2 }),
+          Plot.dot(filas, { x: "corte", y: "pct10", r: 2.5, fill: color, tip: true, title: (d) => `${d.grupo}, ${d.corte}\n${num(d.pct10, 0)}% a 10 km o menos\n${num(d.km, 1)} km en promedio` }),
+          // Nacional y marginación muy baja terminan casi en el mismo punto: cada etiqueta lleva su desplazamiento.
+          ...Object.entries(GRUPOS_ACCESO).map(([grupo, { dy }]) =>
+            Plot.text(filas.filter((f) => f.grupo === grupo), Plot.selectLast({ x: "corte", y: "pct10", text: "grupo", dx: 6, dy, textAnchor: "start", fill: TINTA })),
+          ),
         ],
       };
     },
@@ -225,8 +240,9 @@ export function Uso({ datos }: { datos: Datos }) {
         <figure>
           <h3>Uso de las tarjetas</h3>
           <p className="nota">
-            Todo el país: transacciones en los cajeros del banco por tarjeta emitida, cada mes. En
-            promedio, {num(promedioMes, 2)} al mes en el último año.
+            Todo el país: transacciones en los cajeros del banco entre todas las tarjetas emitidas,
+            cada mes, incluidas las que se cobran en ventanilla o en otros cajeros; por eso es menor
+            que donde abre. En promedio, {num(promedioMes, 2)} al mes en el último año.
           </p>
           <Grafica opciones={opcionesMensual} descripcion="Transacciones por tarjeta al mes" />
         </figure>

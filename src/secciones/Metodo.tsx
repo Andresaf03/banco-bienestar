@@ -45,8 +45,18 @@ const FUENTES_TEMAS = [
   },
   {
     nombre: "Encuesta Intercensal 2015 y 2025 y Censo 2020 (INEGI)",
-    uso: "Ocupación, negocios propios, remesas y programas sociales por municipio.",
+    uso: "Ocupación, negocios propios, remesas y programas sociales por municipio; población de 65 años o más por localidad, para el acceso al cobro.",
     url: "https://www.inegi.org.mx/programas/eic/2025/",
+  },
+  {
+    nombre: "Encuesta Nacional de Inclusión Financiera (INEGI y CNBV)",
+    uso: "Cuentas para cobrar apoyos y tiempo a la sucursal, 2021 y 2024.",
+    url: "https://www.inegi.org.mx/programas/enif/2024/",
+  },
+  {
+    nombre: "Padrón Único de Beneficiarios (Secretaría de Bienestar)",
+    uso: "Beneficiarios y montos por municipio, corte de octubre de 2026.",
+    url: "https://pub.bienestar.gob.mx/pub/agregado",
   },
   {
     nombre: "Encuesta Nacional de Ocupación y Empleo (INEGI)",
@@ -118,7 +128,7 @@ export function Metodo({ datos }: { datos: Datos }) {
           Sant'Anna (2021): compara cada cohorte solo con municipios que todavía no abren y evita el
           sesgo de la regresión clásica con efectos fijos cuando los efectos varían entre cohortes.
           El análisis principal quedó preregistrado antes de estimar; el uso de las cuentas es
-          exploratorio.
+          exploratorio, y el acceso al cobro de los programas, descriptivo.
         </p>
       </header>
 
@@ -224,12 +234,16 @@ export function Metodo({ datos }: { datos: Datos }) {
 
       <h3 className="subtitulo">Reproducir</h3>
       <p className="prosa" style={{ marginBottom: "0.8rem" }}>
-        Desde el repositorio del proyecto, con uv, R y Node instalados:
+        El repositorio de la app trae los datos de las gráficas. Para reconstruirlos, sigue la
+        sección{" "}
+        <a href="https://github.com/Andresaf03/banco-bienestar-evaluacion#reproducir">
+          «Reproducir» del repositorio de análisis
+        </a>
+        . Con la batería principal y las fases 2, 3, 4 y 6 listas, ejecuta desde esa raíz:
       </p>
       <pre className="codigo">
-        <code>{`make bateria          # estimación completa (~55 min)
-make app-datos        # exporta los resultados a app/public/datos
-cd app && npm install && npm run dev`}</code>
+        <code>{`make app-datos        # diagnósticos, uso y exportación
+cd app && npm ci && npm run dev`}</code>
       </pre>
 
       <div className="rejilla" style={{ marginTop: "3rem" }}>

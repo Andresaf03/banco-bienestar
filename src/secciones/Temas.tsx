@@ -65,7 +65,7 @@ function lectura(tema: Tema, datos: Datos): string {
 }
 
 export function Temas({ datos }: { datos: Datos }) {
-  const [tema, setTema] = useState<Tema>("empleo");
+  const [tema, setTema] = useState<Tema>("emprendimiento");
   const filas = datos.temas[tema];
   const [elegido, setElegido] = useState<string>(filas[0].nombre);
   const actual = buscar(filas, elegido) ?? filas[0];
@@ -114,7 +114,13 @@ export function Temas({ datos }: { datos: Datos }) {
         width: ancho,
         height: 240,
         marginLeft: 44,
-        x: { label: "Vecinas sin sucursal, km a la sucursal →", domain: d.map((x) => x.nombre), padding: 0.5 },
+        // En pantallas angostas las bandas no caben completas: el título del eje ya dice "km".
+        x: {
+          label: "Vecinas sin sucursal, km a la sucursal →",
+          domain: d.map((x) => x.nombre),
+          padding: 0.5,
+          tickFormat: (n: string) => (ancho >= 520 ? n : n === "Con sucursal" ? "Propia" : n.replace(" km", "")),
+        },
         y: { label: "Establecimientos de más por mil habitantes", labelAnchor: "top", grid: true },
         marks: [
           Plot.ruleY([0], { stroke: GRIS, strokeDasharray: "4 3" }),

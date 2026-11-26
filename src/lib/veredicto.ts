@@ -29,10 +29,9 @@ export function frase(e: Estimacion, umbral: number, mayuscula = true): string {
 
 function fraseBase(e: Estimacion, umbral: number): string {
   const ic = intervalo(e.lo, e.hi);
-  const cota = Math.max(Math.abs(e.lo), Math.abs(e.hi));
   switch (leer(e, umbral)) {
     case "nulo informativo":
-      return `Efecto de ${pct(e.pct)} con intervalo al 90% de ${ic}: cabe dentro de ±${umbral}%, así que se descartan efectos mayores a ${pct(cota).replace("+", "±")}.`;
+      return `Efecto de ${pct(e.pct)} con intervalo al 90% de ${ic}: cabe dentro de ±${umbral}%, así que se descartan efectos de ±${umbral}% o más.`;
     case "efecto":
       return `Efecto de ${pct(e.pct)} con intervalo al 90% de ${ic}: distinto de cero.`;
     default:
